@@ -1,0 +1,163 @@
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) FIRST 2008. All Rights Reserved.							  */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in $(WIND_BASE)/WPILib.  */
+/*----------------------------------------------------------------------------*/
+
+#include "xboxController.h"
+#include "NetworkCommunication/UsageReporting.h"
+#include "WPIErrors.h"
+#include <math.h>
+
+/**
+ * Construct an instance of a joystick.
+ * The joystick index is the usb port on the drivers station.
+ * 
+ * @param port The port on the driver station that the joystick is plugged into.
+ */
+xboxController::xboxController(UINT32 port)
+{
+	joystick = new Joystick(port);
+}
+
+xboxController::~xboxController()
+{
+	delete joystick;
+}
+
+bool xboxController::GetBtnA()
+{
+	return((bool)joystick->GetRawButton(1));
+}
+
+float xboxController::GetRawBtnA()
+{
+	return(joystick->GetRawButton(1));
+}
+
+bool xboxController::GetBtnB()
+{
+	return((bool)joystick->GetRawButton(2));
+}
+
+float xboxController::GetRawBtnB()
+{
+	return(joystick->GetRawButton(2));
+}
+
+bool xboxController::GetBtnX()
+{
+	return((bool)joystick->GetRawButton(3));
+}
+
+float xboxController::GetRawBtnX()
+{
+	return(joystick->GetRawButton(3));
+}
+
+bool xboxController::GetBtnY()
+{
+	return((bool)joystick->GetRawButton(4));
+}
+
+float xboxController::GetRawBtnY()
+{
+	return(joystick->GetRawButton(4));
+}
+
+bool xboxController::GetLeftBumper()
+{
+	return((bool)joystick->GetRawButton(5));
+}
+
+float xboxController::GetRawLeftBumper()
+{
+	return(joystick->GetRawButton(5));
+}
+
+bool xboxController::GetRightBumper()
+{
+	return((bool)joystick->GetRawButton(6));
+}
+
+float xboxController::GetRawRightBumper()
+{
+	return(joystick->GetRawButton(6));
+}
+
+bool xboxController::GetBackBtn()
+{
+	return((bool)joystick->GetRawButton(7));
+}
+
+float xboxController::GetRawBackBtn()
+{
+	return(joystick->GetRawButton(7));
+}
+
+bool xboxController::GetStartBtn()
+{
+	return((bool)joystick->GetRawButton(8));
+}
+
+float xboxController::GetRawStartBtn()
+{
+	return(joystick->GetRawButton(8));
+}
+
+bool xboxController::GetLeftAnalogBtn()
+{
+	return((bool)joystick->GetRawButton(9));
+}
+
+float xboxController::GetRawLeftAnalogBtn()
+{
+	return(joystick->GetRawButton(9));
+}
+
+bool xboxController::GetRightAnalogBtn()
+{
+	return((bool)joystick->GetRawButton(10));
+}
+
+float xboxController::GetRawRightAnalogBtn()
+{
+	return(joystick->GetRawButton(10));
+}
+
+bool xboxController::GetLeftTrigger()
+{
+	return(joystick->GetRawAxis(3) > 0.0 ? true : false);
+}
+
+bool xboxController::GetRightTrigger()
+{
+	return(joystick->GetRawAxis(3) < 0.0 ? true : false);
+}
+
+
+float xboxController::GetRawTrigger()
+{
+	return(joystick->GetRawAxis(3));
+}
+
+float xboxController::GetLeftAnalogX()
+{
+	return(joystick->GetRawAxis(1));
+}
+
+float xboxController::GetLeftAnalogY()
+{
+	return(joystick->GetRawAxis(2));
+}
+
+
+float xboxController::GetRightAnalogX()
+{
+	return(joystick->GetRawAxis(4));
+}
+
+float xboxController::GetRightAnalogY()
+{
+	return(joystick->GetRawAxis(5));
+}

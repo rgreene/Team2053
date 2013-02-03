@@ -1,0 +1,55 @@
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) FIRST 2008. All Rights Reserved.							  */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in $(WIND_BASE)/WPILib.  */
+/*----------------------------------------------------------------------------*/
+
+#ifndef XBOXCONTROLLER_H_
+#define XBOXCONTROLLER_H_
+
+#include "joystick.h"
+
+class xboxController
+{
+public:
+	Joystick *joystick;
+
+	virtual bool GetBtnA;
+	virtual bool GetBtnB;
+	virtual bool GetBtnX;
+	virtual bool GetBtnY;
+	virtual bool GetLeftBumper;
+	virtual bool GetRightBumper;
+	virtual bool GetBackBtn;
+	virtual bool GetStartBtn;
+	virtual bool GetLeftAnalogBtn;
+	virtual bool GetRightAnalogBtn;
+	virtual bool GetLeftTrigger;
+	virtual bool GetRightTrigger;
+
+	virtual float GetRawBtnA;
+	virtual float GetRawBtnB;
+	virtual float GetRawBtnX;
+	virtual float GetRawBtnY;
+	virtual float GetRawLeftBumper;
+	virtual float GetRawRightBumper;
+	virtual float GetRawBackBtn;
+	virtual float GetRawStartBtn;
+	virtual float GetRawLeftAnalogBtn;
+	virtual float GetRawRightAnalogBtn;
+	virtual float GetRawTrigger;
+	virtual float GetLeftAnalogX;
+	virtual float GetLeftAnalogY;
+	virtual float GetRightAnalogX;
+	virtual float GetRightAnalogY;
+	
+	explicit xboxController(UINT32 port);
+	xboxController(UINT32 port);
+	virtual ~xboxController();
+
+private:
+	DISALLOW_COPY_AND_ASSIGN(xboxController);
+};
+
+#endif
+ 
