@@ -6,37 +6,17 @@
 #include "math.h"
 #include "xboxController.h"
 
-/**
- * This is a demo program showing the use of the RobotBase class.
- * The SimpleRobot class is the base of a robot application that will automatically call your
- * Autonomous and OperatorControl methods at the right time as controlled by the switches on
- * the driver station or the field controls.
+/*
+ * Tigertronics 2053, 2013
  */ 
 
-/*	const int LEFT_ANALOG_X = 1;
-	const int LEFT_ANALOG_Y = 2;
-	const int TRIGGERS = 3;
-	const int RIGHT_ANALOG_X = 4;
-	const int RIGHT_ANALOG_Y = 5;
-	const int BUTTON_A = 1;
-	const int BUTTON_B = 2;
-	const int BUTTON_X = 3;
-	const int BUTTON_Y = 4;
-	const int LEFT_BUMPER = 5;
-	const int RIGHT_BUMPER = 6;
-	const int BACK = 7;
-	const int START = 8;
-	const int LEFT_ANALOG_BTN = 9;
-	const int RIGHT_ANALOG_BTN = 10;
-*/
 class RobotDemo : public SimpleRobot
 {
 
 	// Declare variable for the robot drive system
 	RobotDrive *m_robotDrive;		// robot will use Jags for drive motors
 	
-	//RobotDrive myRobot; // robot drive system
-	//Joystick stick; // only joystick
+	// Def CAN connections
 	CANJaguar *JagLR; // wheel drive Left Right
 	CANJaguar *JagLF; // wheel drive Left Front
 	CANJaguar *JagRR; // wheel drive Right Right
@@ -57,11 +37,7 @@ class RobotDemo : public SimpleRobot
 
 public:
 	RobotDemo(void)
-	    //:
-		//myRobot(1, 2),	// these must be initialized in the same order
-		//stick(1)		// as they are declared above.
 	{
-		//myRobot.SetExpiration(0.1);
 		NetworkTable::GetTable("robotMovement")->PutNumber("angle",0.0);
 		NetworkTable::GetTable("robotMovement")->PutNumber("currAngle",10.0);
 		NetworkTable::GetTable("robotMovement")->PutBoolean("tableRead",false);
@@ -77,8 +53,6 @@ public:
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","None");
 
 		setSticks = false;
-		// Create a robot using standard right/left robot drive on PWMS 1, 2, 3, and #4
-		//m_robotDrive = new RobotDrive(1, 3, 2, 4);
 		xbox = new xboxController(1);
 
 		JagLF = new CANJaguar(2); //left rear 4      5
@@ -109,9 +83,6 @@ public:
 
 	}
 
-	/**
-	 * Drive left & right motors for 2 seconds then stop
-	 */
 	void Autonomous(void)
 	{
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","Autonomous");
@@ -126,10 +97,6 @@ public:
 			}
 			Wait(0.05);
 		}
-		//myRobot.SetSafetyEnabled(false);
-		//myRobot.Drive(-0.5, 0.0); 	// drive forwards half speed
-		//Wait(2.0); 				//    for 2 seconds
-		//myRobot.Drive(0.0, 0.0); 	// stop robot
 	}
 
 	/**
@@ -139,138 +106,114 @@ public:
 	{
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","Teleoperated");		
 		printf("Robot is now in: Teleoperated mode.\n");
-		//myRobot.SetSafetyEnabled(true);
 		while (IsOperatorControl() && IsEnabled())
 		{
-			if(NetworkTable::GetTable("robotMovement")->GetBoolean("adjustEnabled")) {
-				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) {
+			if (xbox->GetBtnA())
+			{
+				// Seek and destroy
+				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) 
+				{
 					printf("Adjustment authorized!\n");
 				}
-				handleRobotAdjustment();
-				//fireFrisbee();
+				//handleRobotAdjustment();
+				
+				if((NetworkTable::GetTable("robotMovement")->GetBoolean("firesln")) && 
+				   (xbox->GetRightTrigger())) 
+				{
+					fireFrisbee();
+				}
 			}
-			//Get Joystick Values
-			// strafe on right analog = back button
-			if(xbox->GetBackBtn()) {
-				setSticks = true;
-				NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Right");
-				//printf("Right Stick is Strafe!\n");
-			}else if(xbox->GetStartBtn()) { 
-				setSticks = false;
-				NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Left");
-				//printf("Left Stick is Strafe!\n");				
+			else
+			{
+				// FIRE!
+				if (xbox->GetRightTrigger())
+				{
+					fireFrisbee();
+				}
+				
+				//Get Joystick Values
+				// strafe on right analog = back button
+				if(xbox->GetBackBtn()) 
+				{
+					setSticks = true;
+					NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Right");
+					//printf("Right Stick is Strafe!\n");
+				}
+				else if(xbox->GetStartBtn()) 
+				{ 
+					setSticks = false;
+					NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Left");
+					//printf("Left Stick is Strafe!\n");				
+				}
+				// strafe on right analog = back button
+				if(setSticks) 
+				{
+					stick_x[0]=xbox->GetLeftAnalogX();
+					stick_y[0]=xbox->GetLeftAnalogY();
+					stick_x[1]=xbox->GetRightAnalogX();
+					stick_y[1]=xbox->GetRightAnalogY();
+				}
+				else
+				{//strafe on left analog = start button
+					stick_x[1]=xbox->GetLeftAnalogX();
+					stick_y[1]=xbox->GetLeftAnalogY();
+					stick_x[0]=xbox->GetRightAnalogX();
+					stick_y[0]=xbox->GetRightAnalogY();
+				}
+				
+				// Apply deadband to controls
+				if (stick_x[0]<deadband && stick_x[0]>(-1*deadband))
+					stick_x[0]=0;
+				
+				if (stick_y[0]<deadband && stick_y[0]>(-1*deadband))
+					stick_y[0]=0;
+				
+				if (stick_x[1]<deadband && stick_x[1]>(-1*deadband))
+					stick_x[1]=0;
+				
+				if (stick_y[1]<deadband && stick_y[1]>(-1*deadband))
+					stick_y[1]=0;
+				
+				// MecanumDrive
+				m_robotDrive->MecanumDrive_Cartesian(stick_x[1]  *-1,stick_y[0]  , (stick_x[0]  ), 0.00);
 			}
-			// strafe on right analog = back button
-			if(setSticks) {
-				stick_x[0]=xbox->GetLeftAnalogY();
-				stick_y[0]=xbox->GetLeftAnalogX();
-				stick_x[1]=xbox->GetRightAnalogX();
-				stick_y[1]=xbox->GetRightAnalogY();
-			}else{//strafe on left analog = start button
-				stick_x[1]=xbox->GetLeftAnalogX();
-				stick_y[1]=xbox->GetLeftAnalogY();
-				stick_x[0]=xbox->GetRightAnalogY();
-				stick_y[0]=xbox->GetRightAnalogX();
-			}
-
-			// Triggers Code
-			// Both triggers pulled at the same time = 0.0 like no triggers pressed
-			
-			
-/*			if(xbox->GetRawAxis(3) < 0.0) {
-				NetworkTable::GetTable("xbox")->PutBoolean("Right_Trigger",true);
-				NetworkTable::GetTable("xbox")->PutNumber("Trigger_value",xbox->GetRawAxis(3));
-				NetworkTable::GetTable("xbox")->PutBoolean("Left_Trigger",false);
-			}else if(xbox->GetRawAxis(3) > 0.0){
-				NetworkTable::GetTable("xbox")->PutBoolean("Left_Trigger",true);
-				NetworkTable::GetTable("xbox")->PutNumber("Trigger_value",xbox->GetRawAxis(3));
-				NetworkTable::GetTable("xbox")->PutBoolean("Right_Trigger",false);
-			}else{
-				NetworkTable::GetTable("xbox")->PutBoolean("Right_Trigger",false);
-				NetworkTable::GetTable("xbox")->PutBoolean("Left_Trigger",false);
-				NetworkTable::GetTable("xbox")->PutNumber("Trigger_value",xbox->GetRawAxis(3));				
-			}
-*/
-			// Button Layout
-/*			NetworkTable::GetTable("xbox")->PutNumber("Button_A",xbox->GetRawButton(1));
-			NetworkTable::GetTable("xbox")->PutNumber("Button_B",xbox->GetRawButton(2));				
-			NetworkTable::GetTable("xbox")->PutNumber("Button_X",xbox->GetRawButton(3));				
-			NetworkTable::GetTable("xbox")->PutNumber("Button_Y",xbox->GetRawButton(4));				
-			NetworkTable::GetTable("xbox")->PutNumber("Left_Bumper",xbox->GetRawButton(5));				
-			NetworkTable::GetTable("xbox")->PutNumber("Right_Bumper",xbox->GetRawButton(6));				
-			NetworkTable::GetTable("xbox")->PutNumber("Back",xbox->GetRawButton(7));				
-			NetworkTable::GetTable("xbox")->PutNumber("Start",xbox->GetRawButton(8));				
-			NetworkTable::GetTable("xbox")->PutNumber("L_An_Btn",xbox->GetRawButton(9));				
-			NetworkTable::GetTable("xbox")->PutNumber("R_An_Btn",xbox->GetRawButton(10));
-*/
-
-			
-			
-			if (stick_x[0]<deadband && stick_x[0]>(-1*deadband))
-				stick_x[0]=0;
-			
-			if (stick_y[0]<deadband && stick_y[0]>(-1*deadband))
-				stick_y[0]=0;
-			
-			if (stick_x[1]<deadband && stick_x[1]>(-1*deadband))
-				stick_x[1]=0;
-			
-			if (stick_y[1]<deadband && stick_y[1]>(-1*deadband))
-				stick_y[1]=0;
-			
-			/*if(xbox->GetRawButton(1)&& m_leftStick->GetRawButton(1))
-			 m_robotDrive->MecanumDrive_Cartesian(stick_x[1]/4*-1,stick_y[0]/4, (stick_x[0]/4), 0.00);
-								     
-			else if( m_leftStick->GetRawButton(1))
-			 m_robotDrive->MecanumDrive_Cartesian(stick_x[1]/2*-1,stick_y[0]/2, (stick_x[0]/2), 0.00);
-								 
-			else if(xbox->GetRawButton(1))
-			 m_robotDrive->MecanumDrive_Cartesian(stick_x[1]/2*-1,stick_y[0]/2, (stick_x[0]/2), 0.00);
-								
-			else// x,y,rotation,gyro
-			*/
-			m_robotDrive->MecanumDrive_Cartesian(stick_x[1]  *-1,stick_y[0]  , (stick_x[0]  ), 0.00);
-			
-			// First use: STATUS does not exist, create it. Set the boolean value
-			// Robot_Enabled (create if first time) to FALSE
-			//printf("This print statement happened\n");
-			//myRobot.ArcadeDrive(stick); // drive with arcade style (use right stick)
-			//Wait(0.5);				// wait for a motor update time
-			//while (IsEnabled()) m_ds->WaitForData(); // Wait for a data packet
-			Wait(0.02);
+			Wait(.01);
 		}
 	}
 	// Checks if table isn't being used currently and has been updated
 	// and then begins adjusting robot until all movements are false and 
 	// curAngle == angle.  Frisbee is then fired.
-	void handleRobotAdjustment() {
+	void handleRobotAdjustment() 
+	{
 		bool adjust = checkAdjustment();
 		printf("Handling Robot Adjustment!\n");
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("tableUpdated")) {
-			printf("Table has been updated, wee!\n");
-				if((!(NetworkTable::GetTable("robotMovement")->GetBoolean("tableInUse"))) &&
-					 NetworkTable::GetTable("robotMovement")->GetBoolean("tableUpdated")) {
-					// Lock table values
-					printf("Table not in use, locking!\n");
-					NetworkTable::GetTable("robotMovement")->PutBoolean("tableInUse",true);
-					printf("Removing updated status!\n");
-					NetworkTable::GetTable("robotMovement")->PutBoolean("tableUpdated",false);
-					strafeLeft();
-					strafeRight();
-					left();
-					right();
-					forward();
-					back();
-					updateLauncherAngle(NetworkTable::GetTable("robotMovement")->GetNumber("angle"));
-					printf("Indicating table has been read!\n");
-					NetworkTable::GetTable("robotMovement")->PutBoolean("tableRead",true);
-					// Release lock on table
-					printf("Releasing lock on table!\n");
-					NetworkTable::GetTable("robotMovement")->PutBoolean("tableInUse",false);
-					adjust = checkAdjustment();
-				}else if(NetworkTable::GetTable("robotMovement")->GetBoolean("tableInUse")){
-					printf("Table is locked, awaiting updates =)\n");
-				}
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("tableUpdated")) 
+		{
+			if(!(NetworkTable::GetTable("robotMovement")->GetBoolean("tableInUse")))
+			{
+				// Lock table values
+				printf("Table not in use, locking!\n");
+				NetworkTable::GetTable("robotMovement")->PutBoolean("tableInUse",true);
+				printf("Removing updated status!\n");
+				NetworkTable::GetTable("robotMovement")->PutBoolean("tableUpdated",false);
+				strafeLeft();
+				strafeRight();
+				left();
+				right();
+				forward();
+				back();
+				updateLauncherAngle();
+				printf("Indicating table has been read!\n");
+				NetworkTable::GetTable("robotMovement")->PutBoolean("tableRead",true);
+				// Release lock on table
+				printf("Releasing lock on table!\n");
+				NetworkTable::GetTable("robotMovement")->PutBoolean("tableInUse",false);
+				adjust = checkAdjustment();
+			}
+			else 
+			{
+			    printf("Table is locked, awaiting updates =)\n");
+			}
 		}
 	}
 	bool checkAdjustment() {
@@ -282,70 +225,104 @@ public:
 			   NetworkTable::GetTable("robotMovement")->GetBoolean("back") ||
 			   (NetworkTable::GetTable("robotMovement")->GetNumber("angle") != 45.0));
 	}
-	void strafeLeft() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("strafeLeft")) {
+	void strafeLeft() 
+	{
+		// Strafe robot Left an incremental amount
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("strafeLeft")) 
+		{
 			//move a little
-			printf("Burping Cims and strafing Left =D\n");
-			m_robotDrive->MecanumDrive_Cartesian(stick_x[0]*-1,stick_y[1], (stick_x[1]), 0.00);
+			m_robotDrive->MecanumDrive_Cartesian(0.5,0,0, 0.00);
+			Wait(0.01);
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0, 0.00);
 		}
 	}
-	void strafeRight() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("strafeRight")) {
+	
+	void strafeRight() 
+	{
+		// Strafe robot Right an incremental amount
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("strafeRight")) 
+		{
 			//move a little
-			printf("Burping Cims and strafing Right =D\n");
+			m_robotDrive->MecanumDrive_Cartesian(-0.5,0,0, 0.00);
+			Wait(0.01);
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0, 0.00);
 		}
 	}
-	void forward() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("forward")) {
+	void forward() 
+	{
+		// Move robot Forward an incremental amount
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("forward")) 
+		{			
 			//move a little
-			printf("Burping Cims and moving forward =D\n");
+			m_robotDrive->MecanumDrive_Cartesian(0,0.5,0, 0.00);
+			Wait(0.01);
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0, 0.00);
 		}
 	}
-	void back() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("back")) {
+	
+	void back() 
+	{
+		// Move robot Back an incremental amount
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("back")) 
+		{
 			//move a little
-			printf("Burping Cims and moving Back =D\n");
+			m_robotDrive->MecanumDrive_Cartesian(0,-0.5,0, 0.00);
+			Wait(0.01);
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0, 0.00);
 		}
 	}
-	void left() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("left")) {
+	void left() 
+	{
+		// Turn robot Left an incremental amount
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("left")) 
+		{
 			//move a little
-			printf("Burping Cims and turning Left =D\n");
+			m_robotDrive->MecanumDrive_Cartesian(0,0,-0.5, 0.00);
+			Wait(0.01);
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0, 0.00);
 		}
 	}
-	void right() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("right")) {
+	void right() 
+	{
+		// Turn robot Right an incremental amount
+		if(NetworkTable::GetTable("robotMovement")->GetBoolean("right")) 
+		{
 			//move a little
-			printf("Burping Cims and turning Right =D\n");
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0.5, 0.00);
+			Wait(0.01);
+			m_robotDrive->MecanumDrive_Cartesian(0,0,0, 0.00);
 		}		
 	}
-	void updateLauncherAngle(double angle) {
-		double angleUpdate = angle;
-		while(angleUpdate > getCurrLauncherAngle()) {
+	void updateLauncherAngle() 
+	{
+		double angleUpdate = NetworkTable::GetTable("robotMovement")->GetNumber("angle");
+		while(angleUpdate > getCurrLauncherAngle()) 
+		{
 			//move launcher down
 			printf("Adjusting Launcher down to proper angle, current angle: %f\n",angleUpdate);
 			angleUpdate--;			
 		}
-		while(angleUpdate < getCurrLauncherAngle()) {
+		while(angleUpdate < getCurrLauncherAngle()) 
+		{
 			//move launcher up
 			printf("Adjusting Launcher up to proper angle, current angle: %f\n",angleUpdate);
 			angleUpdate++;
 		}
 	}
-	double getCurrLauncherAngle() {
+	double getCurrLauncherAngle() 
+	{
 		double angle = 45.0;
 		return angle;
 	}
-	void fireFrisbee() {
-		if(NetworkTable::GetTable("robotMovement")->GetBoolean("adjustEnabled") && 
-		   NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) {
-			printf("Frisbee(s) fired, death from below! >:D\n");
-		}
+	void fireFrisbee() 
+	{
+		printf("Frisbee(s) fired, death from below! >:D\n");
 	}
 	/**
 	 * Runs during test mode
 	 */
-	void Test() {
+	void Test() 
+	{
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","Test");
 		printf("Robot is now in: Test mode.\n");
 	}
