@@ -1,10 +1,16 @@
 #include "WPILib.h"
 #include "NetworkTables/NetworkTable.h"
-#include "SmartDashboard.h"
+#include "smartdashboard/SmartDashboard.h"
 #include "DriverStation.h"
 #include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sstream>
+#include <ios>
 #include "math.h"
 #include "xboxController.h"
+#include "SerialPort.h"
+#include "T7task.h"
 
 /*
  * Tigertronics 2053, 2013
@@ -16,20 +22,50 @@ class RobotDemo : public SimpleRobot
 	// Declare variable for the robot drive system
 	RobotDrive *m_robotDrive;		// robot will use Jags for drive motors
 	
-	// Def CAN connections
 	CANJaguar *JagLR; // wheel drive Left Right
 	CANJaguar *JagLF; // wheel drive Left Front
 	CANJaguar *JagRR; // wheel drive Right Right
 	CANJaguar *JagRF; // wheel drive Right Front
 	
+	CANJaguar *ShooterTop; // Top shooter wheels
+	CANJaguar *ShooterBottom ;// Bottom shoot wheels
+	
+	CANJaguar *FrisbeeBelt; // Frisbee getter belt
+
+	
+	//CANJaguar *BreachLoader; //Used to place frisbe for firing.
+	Servo *loaderArm; // load frisbe
+	Servo *loadTest;
+	
+	CANJaguar *WinchJag; // Winch control (angle)
+	Timer *fireTimer;
+
 	//Variables to get values from joysticks
 	float stick_x[2];
 	float stick_y[2];
+	
+	float topShooterOffset;
+	float bottomShooterOffset;
+	
 	float deadband;
-	bool setSticks;
+	int swapControls;
+	int trigCnt;
+	
+	bool btnPressed;
+	
+	bool btnPressed_2;
+	bool setLoader;
+	bool getAngleRequested;
+	bool setDamping;
+	bool isConveyorOn;
+	bool triggerOn;
+	
+	float loaderDriveVal;
+	float angle;
 
 	// Declare a variable for the xbox controller
 	xboxController *xbox;
+	T7Task *angleTask;
 	
 	static const int NUxbox_BUTTONS = 16;
 	bool xboxButtonState[(NUxbox_BUTTONS+1)];
@@ -52,8 +88,21 @@ public:
 		NetworkTable::GetTable("robotMovement")->PutBoolean("strafeRight",false);
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","None");
 
-		setSticks = false;
+		swapControls = 0;
+
+		topShooterOffset = 0;
+		bottomShooterOffset = 0;
+		
+		triggerOn = false;
+		btnPressed = false;
+
+		btnPressed_2 = false;
+		setLoader = false;
+		loaderDriveVal = 0.0;
+		trigCnt = 0;
+		
 		xbox = new xboxController(1);
+		angleTask = new T7Task();
 
 		JagLF = new CANJaguar(2); //left rear 4      5
 		JagRR = new CANJaguar(3); // right front 6   3
@@ -61,12 +110,26 @@ public:
 		JagLR = new CANJaguar(5); //left front 11    2
 		JagRF = new CANJaguar(4); // right rear 2    4
 
+		ShooterTop = new CANJaguar(7,CANJaguar::kPercentVbus); // Top shooter wheels
+		ShooterBottom = new CANJaguar(6,CANJaguar::kPercentVbus);// Bottom shoot wheels
+		
+		WinchJag = new CANJaguar(8);
+		
+		FrisbeeBelt = new CANJaguar(9);
+		
+		fireTimer = new Timer();//Timer for servo positions when shooting
+		
+	
 		// Create a robot using standard right/left Jag controllers
 		m_robotDrive = new RobotDrive(JagLF,JagLR,JagRF,JagRR);
+		
+		loaderArm = new Servo(1,1);
+		loadTest = new Servo(1,2);
 
 		// Iterate over all the buttons on each joystick, setting state to false for each
 		UINT8 buttonNum = 1;						// start counting buttons at button 1
-		for (buttonNum = 1; buttonNum <= NUxbox_BUTTONS; buttonNum++) {
+		for (buttonNum = 1; buttonNum <= NUxbox_BUTTONS; buttonNum++) 
+		{
 			xboxButtonState[buttonNum] = false;
 			m_leftStickButtonState[buttonNum] = false;
 		}
@@ -80,22 +143,34 @@ public:
 		m_robotDrive->SetInvertedMotor(RobotDrive::kFrontLeftMotor,false);
 		
 		m_robotDrive->SetSafetyEnabled(false);//NEED THIS!!
-
+		
+		isConveyorOn = false;
+		getAngleRequested = false;
+		setDamping = true;
+		angle = 0.0;
+		angleTask->Run();
 	}
 
+	/**
+	 * Drive left & right motors for 2 seconds then stop
+	 */
 	void Autonomous(void)
 	{
-		NetworkTable::GetTable("robotMovement")->PutString("currMode","Autonomous");
+		NetworkTable::GetTable("robotMovement")->PutString("currMode","Autonomous\0");
 		printf("Robot is now in: Autonomous mode.\n");
-		while(IsAutonomous() && IsEnabled()) {
-			if(NetworkTable::GetTable("robotMovement")->GetBoolean("adjustEnabled")) {
-				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) {
+		while(IsAutonomous() && IsEnabled()) 
+		{
+			angle = angleTask->ReturnAngle();
+			NetworkTable::GetTable("T7")->PutNumber("angle",angle);
+			if(NetworkTable::GetTable("robotMovement")->GetBoolean("adjustEnabled")) 
+			{
+				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) 
+				{
 					printf("Adjustment authorized!\n");
 				}
 				handleRobotAdjustment();
-				fireFrisbee();
-			}
-			Wait(0.05);
+				fireFrisbee(*loaderArm,*ShooterBottom,*ShooterTop,*fireTimer);
+			}			
 		}
 	}
 
@@ -104,82 +179,206 @@ public:
 	 */
 	void OperatorControl(void)
 	{
-		NetworkTable::GetTable("robotMovement")->PutString("currMode","Teleoperated");		
+		NetworkTable::GetTable("robotMovement")->PutString("currMode","Teleoperated\0");		
 		printf("Robot is now in: Teleoperated mode.\n");
 		while (IsOperatorControl() && IsEnabled())
 		{
-			if (xbox->GetBtnA())
+			angle = angleTask->ReturnAngle();
+			NetworkTable::GetTable("T7")->PutNumber("angle",angle);
+			applyDeadband();	
+			controlsChangeCheck();			
+			shooterWheelsAdjust();
+			conveyorLoader();
+			handleWinch();
+
+			// FIRE!
+			if (xbox->GetRightTrigger())
 			{
-				// Seek and destroy
-				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) 
-				{
-					printf("Adjustment authorized!\n");
-				}
-				//handleRobotAdjustment();
-				
-				if((NetworkTable::GetTable("robotMovement")->GetBoolean("firesln")) && 
-				   (xbox->GetRightTrigger())) 
-				{
-					fireFrisbee();
-				}
+				fireFrisbee(*loaderArm,*ShooterBottom,*ShooterTop,*fireTimer);
+			}else{
+				loaderArm->Servo::SetAngle(155.0); // set servo to angle
 			}
-			else
-			{
-				// FIRE!
-				if (xbox->GetRightTrigger())
-				{
-					fireFrisbee();
-				}
 				
-				//Get Joystick Values
-				// strafe on right analog = back button
-				if(xbox->GetBackBtn()) 
-				{
-					setSticks = true;
-					NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Right");
-					//printf("Right Stick is Strafe!\n");
-				}
-				else if(xbox->GetStartBtn()) 
-				{ 
-					setSticks = false;
-					NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Left");
-					//printf("Left Stick is Strafe!\n");				
-				}
-				// strafe on right analog = back button
-				if(setSticks) 
-				{
-					stick_x[0]=xbox->GetLeftAnalogX();
-					stick_y[0]=xbox->GetLeftAnalogY();
-					stick_x[1]=xbox->GetRightAnalogX();
-					stick_y[1]=xbox->GetRightAnalogY();
-				}
-				else
-				{//strafe on left analog = start button
-					stick_x[1]=xbox->GetLeftAnalogX();
-					stick_y[1]=xbox->GetLeftAnalogY();
-					stick_x[0]=xbox->GetRightAnalogX();
-					stick_y[0]=xbox->GetRightAnalogY();
-				}
-				
-				// Apply deadband to controls
-				if (stick_x[0]<deadband && stick_x[0]>(-1*deadband))
-					stick_x[0]=0;
-				
-				if (stick_y[0]<deadband && stick_y[0]>(-1*deadband))
-					stick_y[0]=0;
-				
-				if (stick_x[1]<deadband && stick_x[1]>(-1*deadband))
-					stick_x[1]=0;
-				
-				if (stick_y[1]<deadband && stick_y[1]>(-1*deadband))
-					stick_y[1]=0;
-				
-				// MecanumDrive
-				m_robotDrive->MecanumDrive_Cartesian(stick_x[1]  *-1,stick_y[0]  , (stick_x[0]  ), 0.00);
-			}
-			Wait(.01);
+			// MecanumDrive
+			m_robotDrive->MecanumDrive_Cartesian(stick_x[1]  *-1,stick_y[0]  , (stick_x[0]  ), 0.00);
 		}
 	}
+
+	void handleWinch()
+	{
+		if(xbox->GetBtnX())
+		{
+//			if(angle > 24.0 && angle < 52.0)
+	//		{
+				WinchJag->CANJaguar::Set(-1.0);
+		//	}
+		}
+		else if(xbox->GetBtnY())
+		{
+			//if(angle > 24.0 && angle < 52.0)
+			//{
+				WinchJag->CANJaguar::Set(1.0);
+			//}
+		}
+		else
+		{
+			WinchJag->CANJaguar::Set(0.0);
+		}		
+	}
+	
+
+	void applyDeadband()
+	{
+		// Apply deadband to controls
+		if (stick_x[0]<deadband && stick_x[0]>(-1*deadband))
+			stick_x[0]=0;
+		if (stick_y[0]<deadband && stick_y[0]>(-1*deadband))
+			stick_y[0]=0;
+		if (stick_x[1]<deadband && stick_x[1]>(-1*deadband))
+			stick_x[1]=0;
+		if (stick_y[1]<deadband && stick_y[1]>(-1*deadband))
+			stick_y[1]=0;		
+	}
+	
+	void shooterWheelsAdjust()
+	{
+		if(xbox->GetBtnA())
+		{
+			if(xbox->GetLeftBumper())
+			{
+				bottomShooterOffset = bottomShooterOffset + 0.001;
+			}
+			if(xbox->GetRightBumper())
+			{
+				bottomShooterOffset = bottomShooterOffset - 0.001;					
+			}
+		}
+		if(xbox->GetBtnB())
+		{
+			if(xbox->GetLeftBumper())
+			{
+				topShooterOffset = topShooterOffset + 0.001;
+			}
+			if(xbox->GetRightBumper())
+			{
+				topShooterOffset = topShooterOffset - 0.001;
+			}
+		}
+		if(!xbox->GetBtnA() && !xbox->GetBtnB())
+		{
+			ShooterTop->Set(0.0);
+			ShooterBottom->Set(0.0);
+		}else if(xbox->GetBtnA() || xbox->GetBtnB())
+		{
+			ShooterTop->Set(-0.8640001475811004+topShooterOffset);
+			NetworkTable::GetTable("Shooters")->PutNumber("Top",(-0.8640001475811004+topShooterOffset));
+			ShooterBottom->Set(-0.8639988601207733+bottomShooterOffset);
+			NetworkTable::GetTable("Shooters")->PutNumber("Bottom",(-0.8639988601207733+bottomShooterOffset));				
+		}		
+	}
+
+	void conveyorLoader()
+	{
+		if(xbox->GetLeftTrigger())
+		{
+			if(trigCnt > 1 && !triggerOn)
+			{
+				loaderDriveVal = 0.0;
+				trigCnt = 0;
+				triggerOn = true;
+			}
+			else if(!triggerOn)
+			{
+				trigCnt = 1;
+				loaderDriveVal = -1.0;
+				triggerOn = true;
+			}
+		}
+		else if(!(xbox->GetLeftTrigger()))
+		{
+			if(trigCnt == 1)
+			{
+				trigCnt = 2;
+			}
+			triggerOn = false;
+		}
+		FrisbeeBelt->Set(loaderDriveVal); // negative grabs frisbee
+	}
+	
+	void controlsChangeCheck()
+	{	
+		//Get Joystick Values
+		// strafe on right analog = back button
+		if(xbox->GetBackBtn() && !btnPressed)
+		{
+			btnPressed = true;
+			swapControls++;
+			if(swapControls == 4)
+			{
+				swapControls = 0;
+			}
+			if(swapControls == 0)
+			{
+				NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Right\0");						
+			}
+			if(swapControls == 1)
+			{
+				NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Left\0");
+			}
+			if(swapControls == 2)
+			{
+				NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Left & fwd|bck\0");
+			}
+			if(swapControls == 3)
+			{
+				NetworkTable::GetTable("xbox")->PutString("Stafe_Stick","Right & fwd|bck\0");
+			}
+		}
+		else if(!xbox->GetBackBtn() && btnPressed)
+		{
+			btnPressed = false;
+		}
+
+		if(swapControls == 0)
+		{
+			stick_x[0]=xbox->GetLeftAnalogY();
+			stick_y[0]=xbox->GetLeftAnalogX();
+			stick_x[1]=xbox->GetRightAnalogX();
+			stick_y[1]=xbox->GetRightAnalogY();
+			//printf("Right Stick is Strafe!\n");						
+		}
+		else if(swapControls == 1)
+		{
+			stick_x[1]=xbox->GetLeftAnalogX();
+			stick_y[1]=xbox->GetLeftAnalogY();
+			stick_x[0]=xbox->GetRightAnalogY();
+			stick_y[0]=xbox->GetRightAnalogX();
+			//printf("Left Stick is Strafe!\n");									
+		}
+		else if(swapControls == 2)
+		{
+			//strafe on x axis left analog stick with forward/back
+			stick_x[0]=xbox->GetLeftAnalogY();  //strafe
+			stick_y[0]=xbox->GetRightAnalogX();  //fwd/bck
+			stick_x[1]=xbox->GetLeftAnalogX(); //turn
+			stick_y[1]=xbox->GetRightAnalogY();
+			
+			
+		}
+		else if(swapControls == 3)
+		{
+			//strafe on x axis right analog stick with forward/back
+			stick_x[1]=xbox->GetLeftAnalogY();  //strafe
+			stick_y[1]=xbox->GetRightAnalogX();  //fwd/bck
+			stick_x[0]=xbox->GetLeftAnalogX(); //turn
+			stick_y[0]=xbox->GetRightAnalogY();
+		}
+		stick_x[0] = stick_x[0]*-1;
+		stick_x[1] = stick_x[1]*-1;
+		stick_y[0] = stick_y[0]*-1;
+		stick_y[1] = stick_y[1]*-1;
+	}
+	
 	// Checks if table isn't being used currently and has been updated
 	// and then begins adjusting robot until all movements are false and 
 	// curAngle == angle.  Frisbee is then fired.
@@ -314,16 +513,47 @@ public:
 		double angle = 45.0;
 		return angle;
 	}
-	void fireFrisbee() 
+	void fireFrisbee(Servo &loaderArm,CANJaguar &ShooterBottom, CANJaguar &ShooterTop,Timer &fireTimer) 
 	{
 		printf("Frisbee(s) fired, death from below! >:D\n");
+		printf("Timer: %f",fireTimer.Timer::Get());
+		if(fireTimer.Timer::Get()==0.0)
+		{
+			fireTimer.Timer::Start();
+		}
+        //loaderArm.SetSafetyEnabled(true);
+		//loaderArm.Servo::SetAngle(0.0);
+		//start top and bottom motor.
+		//ShooterBottom.CANJaguar::Set(-0.6);
+		//ShooterTop.CANJaguar::Set(-0.5);
+		if(fireTimer.Timer::Get()>=1.0)
+		{
+			//loaderArm.Servo::SetAngle(180.0); // set servo to angle
+			loaderArm.Servo::SetAngle(155.0); // set servo to angle
+			NetworkTable::GetTable("Servo")->PutNumber("angle",145.0);
+			NetworkTable::GetTable("Servo")->PutBoolean("reset",true);
+			
+			fireTimer.Timer::Stop();
+			fireTimer.Timer::Reset();
+		}
+		//Wait(0.5); // wait .5 second       
+		//loaderArm.Servo::SetAngle(180.0); // set servo to angle
+		else if(fireTimer.Timer::Get()>=0.5)
+		{
+			loaderArm.Servo::SetAngle(75.0); // set servo to angle
+			NetworkTable::GetTable("Servo")->PutNumber("angle",75.0);
+			NetworkTable::GetTable("Servo")->PutBoolean("reset",false);
+		}
+		//Wait(0.5); // wait .5 second 7
 	}
+		
+	
 	/**
 	 * Runs during test mode
 	 */
 	void Test() 
 	{
-		NetworkTable::GetTable("robotMovement")->PutString("currMode","Test");
+		NetworkTable::GetTable("robotMovement")->PutString("currMode","Test\0");
 		printf("Robot is now in: Test mode.\n");
 	}
 };
