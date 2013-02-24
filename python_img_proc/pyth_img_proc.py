@@ -1,63 +1,70 @@
 from SimpleCV import *
+import collections
 
-cameraFieldOfView = 60.0
-targetHeight_small = 20.0 # SMALL GOAL
-goal_height_small = 9.5 
-targetHeight = 29.0 # MEDIUM GOAL
-goal_height = 8.5
+#return val of img processing
+point = collections.namedtuple('Point', ['adj', 'angl'])
 
-blob_maker = BlobMaker()
-#img = Image('image2_ext.jpg') # multi-goal
-#img = Image('image2.jpg') # flat on
-#img = Image('image6.jpg') # angle
-#img = Image('image5.jpg') # severe angle
-img = Image('test.jpg')
-#img = Image('image13_40feet.jpg')
-#cam = Camera()
-#img = cam.getImage()
-img_size = img.size()
-centerX = (img_size[0])/2
-centerY = (img_size[1])/2
-
-# ========= filter on GREEN from LED
-green_distance = img.colorDistance(Color.GREEN)
-only_green = img - green_distance
-
-#invert image and turn into binary image
-bin_img = only_green.invert().binarize().morphClose()
-
-# ========= filter on GREEN from LED
-# ========= filter on WHITE from LED
-#white_distance = img.colorDistance(Color.WHITE)
-#only_white = img - white_distance
-#
-##invert image and turn into binary image
-#bin_img = only_white.invert().binarize().morphClose()
-# ========= filter on WHITE from LED
-
-# ========= Hue Saturation Value stuff
-#HSVImg = img.toHSV()
-#(img_h, img_s, img_v) = HSVImg.splitChannels(False)
-#HSVImg = HSVImg - img_s
-#(HSVImg).binarize().invert().show()
-# ========= Hue Saturation Value stuff
-
-#close any open goals
-bin_img = bin_img.dilate(10).erode(10)
-
-#bin_img.show()
-
-goals = blob_maker.extractFromBinary(bin_img, img, minsize=5, maxsize=-1, appx_level=3)
-num_goals = len(goals)
-for g in range(num_goals):
-    if goals[g].isRectangle():
-#    if 1:
-#		centroid = goals[g].centroid()
+def image_proc():
+	cameraFieldOfView = 60.0
+	targetHeight_small = 20.0 # SMALL GOAL
+	goal_height_small = 9.5 
+	targetHeight = 29.0 # MEDIUM GOAL
+	goal_height = 8.5
+	
+	blob_maker = BlobMaker()
+	#img = Image('image2_ext.jpg') # multi-goal
+	#img = Image('image2.jpg') # flat on
+	#img = Image('image6.jpg') # angle
+	#img = Image('image5.jpg') # severe angle
+	#img = Image('test.jpg')
+	#img = Image('image13_40feet.jpg')
+	cam = Camera()
+	img = cam.getImage()
+	img_size = img.size()
+	centerX = (img_size[0])/2
+	centerY = (img_size[1])/2
+	
+	# ========= filter on GREEN from LED
+	green_distance = img.colorDistance(Color.GREEN)
+	only_green = img - green_distance
+	
+	#invert image and turn into binary image
+	bin_img = only_green.invert().binarize().morphClose()
+	
+	# ========= filter on GREEN from LED
+	
+	#close any open goals
+	bin_img = bin_img.dilate(10).erode(10)
+	
+	#bin_img.show()
+	goal_dist_array = []
+	
+	goals = blob_maker.extractFromBinary(bin_img, img, minsize=5, maxsize=-1, appx_level=3)
+	num_goals = len(goals)
+	
+	# determine which goal is closest
+	for g in range(num_goals):
 		centroid = goals[g].coordinates()
 		img.drawText("X", centroid[0], centroid[1], fontsize = 20)
+		goal_dist = sqrt((pow((centroid[0] - centerX), 2)) + ((pow((centroid[1] - centerY),2))))
+	#	print "Distance to center: %d" % goal_dist
+		goal_dist_array.append(goal_dist)
+		
+	darr = np.array(goal_dist_array)
+	#print(darr.argmin())
+	k = darr.argmin()
+	
+	# Process closest goal 
+	if goals[k].isRectangle():
+		centroid = goals[k].coordinates()
+		img.drawText("X", centroid[0], centroid[1], fontsize = 20)
+
+		goal_dist = sqrt((pow((centroid[0] - centerX), 2)) + ((pow((centroid[1] - centerY),2))))
+	#	print "Distance to center: %d" % goal_dist
+		goal_dist_array.append(goal_dist)
 		
 		# Get corners
-		goal_corners = goals[g].corners()
+		goal_corners = goals[k].corners()
 		cornerXY1 = goal_corners[0]
 		cornerX1 = cornerXY1[0]
 		cornerY1 = cornerXY1[1]
@@ -79,33 +86,53 @@ for g in range(num_goals):
 		
 		goal_height_pix = cornerY4 - cornerY1
 		goal_width_pix = cornerX2 - cornerX1
-		
-		min_bounding_height = goals[g].minRectHeight()
-		min_bounding_width = goals[g].minRectWidth()
+
+		min_bounding_height = goals[k].minRectHeight()
+		min_bounding_width = goals[k].minRectWidth()
 		goal_ratio = min_bounding_height/min_bounding_width
 
 		if (goal_ratio > .4):
 			print "Medium Goal"
 			totalDistance = (((targetHeight*img_size[1])/goal_height_pix))/tan(((cameraFieldOfView*3.14159)/180.0)/2.0)
 			print "Goal Distance: %f"%(((totalDistance)/12.0))
-			print "Goal Height: %f"%(goal_height)
+			#print "Goal Height: %f"%(goal_height)
 			center_angle = atan(goal_height/((totalDistance/12.0)))*(180.0/3.14159)
-			print "Goal Angle: %f"%(center_angle)
+			#print "Goal Angle: %f"%(center_angle)
 		else:
 			print "Small Goal"
 			totalDistance = (((targetHeight_small*img_size[1])/goal_height_pix))/tan(((cameraFieldOfView*3.14159)/180.0)/2.0)
 			print "Goal Distance: %f"%(((totalDistance)/12.0))
-			print "Goal Height: %f"%(goal_height_small)
+			#print "Goal Height: %f"%(goal_height_small)
 			center_angle = atan(goal_height_small/((totalDistance/12.0)))*(180.0/3.14159)
-			print "Goal Angle: %f"%(center_angle)
-			
+			#print "Goal Angle: %f"%(center_angle)
+
+		robot_adj_pix_X = centerX - centroid[0]
+		abs_adj = abs(robot_adj_pix_X)		
+		#if robot_adj_pix_X < 0.0:
+		#	print "Rotate left: %f"%(abs_adj)
+		#	print "Adjust Angle to: %f"%(center_angle)
+		#else:
+		#	if robot_adj_pix_X > 0.0:
+		#		print "Rotate Right: %f"%(abs_adj)
+		#		print "Adjust Angle to: %f"%(center_angle)
+		#	else:
+		#		print "Adjust Angle to: %f"%(center_angle)
+
+	img.drawText("O", centerX, centerY, fontsize = 20)
+	
+	# Uncomment the following to see what goal it chose
+	goals.show()
+	
+	p = point(robot_adj_pix_X,center_angle)
+	return p
+	
+def main():
+		#point = collections.namedtuple('Point', ['adj', 'angl'])
+		q = point(0,0)
+		q = image_proc()
+		print "returned_adj: %f"%q[0]
+		print "returned_angl: %f"%q[1]
 		
+		out = raw_input('press enter to end')
 
-img.drawText("O", centerX, centerY, fontsize = 20)
-
-#Goal diatance from Robot
-
-
-print "Total number of goals in img: %d" %(num_goals)
-goals.show()
-out = raw_input('press enter to end')
+main()
