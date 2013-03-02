@@ -9,8 +9,6 @@
 #include <ios>
 #include "math.h"
 #include "xboxController.h"
-#include "SerialPort.h"
-#include "T7task.h"
 
 /*
  * Tigertronics 2053, 2013
@@ -60,12 +58,14 @@ class RobotDemo : public SimpleRobot
 	bool isConveyorOn;
 	bool triggerOn;
 	
+	int num;
+	
 	float loaderDriveVal;
 	float angle;
 
 	// Declare a variable for the xbox controller
 	xboxController *xbox;
-	T7Task *angleTask;
+	//T7Task *angleTask;
 	
 	static const int NUxbox_BUTTONS = 16;
 	bool xboxButtonState[(NUxbox_BUTTONS+1)];
@@ -102,7 +102,7 @@ public:
 		trigCnt = 0;
 		
 		xbox = new xboxController(1);
-		angleTask = new T7Task();
+		//angleTask = new T7Task();
 
 		JagLF = new CANJaguar(2); //left rear 4      5
 		JagRR = new CANJaguar(3); // right front 6   3
@@ -125,6 +125,7 @@ public:
 		
 		loaderArm = new Servo(1,1);
 		loadTest = new Servo(1,2);
+		num = 0;
 
 		// Iterate over all the buttons on each joystick, setting state to false for each
 		UINT8 buttonNum = 1;						// start counting buttons at button 1
@@ -148,7 +149,7 @@ public:
 		getAngleRequested = false;
 		setDamping = true;
 		angle = 0.0;
-		angleTask->Run();
+		//angleTask->Run();
 	}
 
 	/**
@@ -158,20 +159,24 @@ public:
 	{
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","Autonomous\0");
 		printf("Robot is now in: Autonomous mode.\n");
-		while(IsAutonomous() && IsEnabled()) 
+		num = 0;
+		while(IsAutonomous() && IsEnabled() && num < 5) 
 		{
-			angle = angleTask->ReturnAngle();
-			NetworkTable::GetTable("T7")->PutNumber("angle",angle);
-			if(NetworkTable::GetTable("robotMovement")->GetBoolean("adjustEnabled")) 
-			{
-				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) 
-				{
-					printf("Adjustment authorized!\n");
-				}
-				handleRobotAdjustment();
-				fireFrisbee(*loaderArm,*ShooterBottom,*ShooterTop,*fireTimer);
-			}			
+			//angle = angleTask->ReturnAngle();
+			//NetworkTable::GetTable("T7")->PutNumber("angle",angle);
+//			if(NetworkTable::GetTable("robotMovement")->GetBoolean("adjustEnabled")) 
+//			{
+//				if(!NetworkTable::GetTable("robotMovement")->GetBoolean("tableRead")) 
+//				{
+//					printf("Adjustment authorized!\n");
+//				}
+//				handleRobotAdjustment();
+			fireFrisbee(*loaderArm,*ShooterBottom,*ShooterTop,*fireTimer);
+			
+//			}			
 		}
+		ShooterTop->Set(0.0);
+		ShooterBottom->Set(0.0);		
 	}
 
 	/**
@@ -183,11 +188,11 @@ public:
 		printf("Robot is now in: Teleoperated mode.\n");
 		while (IsOperatorControl() && IsEnabled())
 		{
-			angle = angleTask->ReturnAngle();
-			NetworkTable::GetTable("T7")->PutNumber("angle",angle);
+			//angle = angleTask->ReturnAngle();
+			//NetworkTable::GetTable("T7")->PutNumber("angle",angle);
 			applyDeadband();	
 			controlsChangeCheck();			
-			shooterWheelsAdjust();
+			//shooterWheelsAdjust();
 			conveyorLoader();
 			handleWinch();
 
@@ -197,6 +202,8 @@ public:
 				fireFrisbee(*loaderArm,*ShooterBottom,*ShooterTop,*fireTimer);
 			}else{
 				loaderArm->Servo::SetAngle(155.0); // set servo to angle
+				ShooterTop->Set(0.0);
+				ShooterBottom->Set(0.0);
 			}
 				
 			// MecanumDrive
@@ -210,14 +217,14 @@ public:
 		{
 //			if(angle > 24.0 && angle < 52.0)
 	//		{
-				WinchJag->CANJaguar::Set(-1.0);
+				WinchJag->CANJaguar::Set(-0.7);
 		//	}
 		}
 		else if(xbox->GetBtnY())
 		{
 			//if(angle > 24.0 && angle < 52.0)
 			//{
-				WinchJag->CANJaguar::Set(1.0);
+				WinchJag->CANJaguar::Set(0.7);
 			//}
 		}
 		else
@@ -279,6 +286,8 @@ public:
 
 	void conveyorLoader()
 	{
+		float TheAngle;
+		static bool setAngel;
 		if(xbox->GetLeftTrigger())
 		{
 			if(trigCnt > 1 && !triggerOn)
@@ -289,9 +298,34 @@ public:
 			}
 			else if(!triggerOn)
 			{
+				TheAngle = NetworkTable::GetTable("T7")->GetNumber("angle");
+				printf("%f\n",TheAngle);
+				if (TheAngle < 53.4){
+					
+					
+					
+					if (setAngel == False)
+					
+					setAngel = true;
+					
+					WinchJag->CANJaguar::Set(1.0);	
+					
+				}
+				
+				else if ( TheAngle > 55.0 )
+				{
+					WinchJag->CANJaguar::Set(-1.0);
+					
+				}
+					
+				else 	{
+				
+				WinchJag->CANJaguar::Set(0.0);	
 				trigCnt = 1;
 				loaderDriveVal = -1.0;
 				triggerOn = true;
+			
+				}
 			}
 		}
 		else if(!(xbox->GetLeftTrigger()))
@@ -515,8 +549,9 @@ public:
 	}
 	void fireFrisbee(Servo &loaderArm,CANJaguar &ShooterBottom, CANJaguar &ShooterTop,Timer &fireTimer) 
 	{
-		printf("Frisbee(s) fired, death from below! >:D\n");
-		printf("Timer: %f",fireTimer.Timer::Get());
+		ShooterTop.Set(-0.7220000386238098);
+		ShooterBottom.Set(-0.591998815536499);
+		//printf("Timer: %f",fireTimer.Timer::Get());
 		if(fireTimer.Timer::Get()==0.0)
 		{
 			fireTimer.Timer::Start();
@@ -526,19 +561,19 @@ public:
 		//start top and bottom motor.
 		//ShooterBottom.CANJaguar::Set(-0.6);
 		//ShooterTop.CANJaguar::Set(-0.5);
-		if(fireTimer.Timer::Get()>=1.0)
+		if(fireTimer.Timer::Get()>=2.5)
 		{
 			//loaderArm.Servo::SetAngle(180.0); // set servo to angle
 			loaderArm.Servo::SetAngle(155.0); // set servo to angle
 			NetworkTable::GetTable("Servo")->PutNumber("angle",145.0);
 			NetworkTable::GetTable("Servo")->PutBoolean("reset",true);
-			
+			num++;
 			fireTimer.Timer::Stop();
 			fireTimer.Timer::Reset();
 		}
 		//Wait(0.5); // wait .5 second       
 		//loaderArm.Servo::SetAngle(180.0); // set servo to angle
-		else if(fireTimer.Timer::Get()>=0.5)
+		else if(fireTimer.Timer::Get()>=2.0)
 		{
 			loaderArm.Servo::SetAngle(75.0); // set servo to angle
 			NetworkTable::GetTable("Servo")->PutNumber("angle",75.0);
