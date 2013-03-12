@@ -20,6 +20,7 @@ class JankyTask {
    */
   JankyTask(const char* taskName = NULL, UINT32 priority = Task::kDefaultPriority);
   virtual ~JankyTask();
+  
 
   /**
    * @brief PRIVATE- Do not call this function externally as it's only passed to the constructor to initialize the object.

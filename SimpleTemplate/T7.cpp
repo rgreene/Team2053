@@ -51,12 +51,12 @@ bool T7::ReceiveSetDampingRequest()
 	if(size > 4)
 	{
 		serial->Read(*bufferIn,size);
-		printf("received: ");
-		for(int i = 0; i < size; i++)
-		{
-			printf("%02X",*bufferIn[i]);
-		}
-		printf("\n");
+		//printf("received: ");
+		//for(int i = 0; i < size; i++)
+		//{
+		//	printf("%02X",*bufferIn[i]);
+		//}
+		//printf("\n");
 		return true;
 	}
 	else
@@ -81,12 +81,12 @@ void T7::SendSetDampingRequest(int damping)
     checksum += cmd[0] + cmd[1] + cmd[2] + cmd[3] + cmd[4];
     checksum = ((checksum*(-1)) % 256)+1;
     cmd[5] = (unsigned char) checksum;
-    printf("sending setDamping cmd: ");
-    for(int i = 0; i < 6; i++)
-    {
-        printf("%02X ",cmd[i]);
-    }
-    printf("\n");
+    ///printf("sending setDamping cmd: ");
+    //for(int i = 0; i < 6; i++)
+    //{
+    //   printf("%02X ",cmd[i]);
+    //}
+    //printf("\n");
     char cmds[5];
     for(int i = 0; i < 6; i++)
     {
@@ -108,7 +108,7 @@ float T7::ReceiveGetAngleRequest()
 		serial->Read(*bufferIn,size);
 		std::string unpacked = unpack_hex(*bufferIn,3,size-1);
 	
-		printf("unpacked: %s\n",unpacked.c_str());
+		//printf("unpacked: %s\n",unpacked.c_str());
 		
 		stringstream ss;
 		unsigned long unsignedLong;
@@ -118,16 +118,17 @@ float T7::ReceiveGetAngleRequest()
 		
 		ss >> std::hex >> unsignedLong;
 
-		printf("unsigned long %lu\n",unsignedLong);
+		//printf("unsigned long %lu\n",unsignedLong);
 		
 		signedLong = (signed long)unsignedLong;
-		printf("signed long %ld\n",signedLong);
-		float degree = ((float)signedLong) / 1000.0;			
+		//printf("signed long %ld\n",signedLong);
+		float degree = ((float)signedLong) / 1000.0;
+		printf("angle: %.4f\n",degree);
 		return degree;
 	}
 	else
 	{
-		printf("Size is: %d\n", size);
+		//printf("Size is: %d\n", size);
 		return 0.0;
 	}
 }
@@ -155,12 +156,12 @@ std::string T7::unpack_hex(char *buffer,int offset,int size)
 	{
 		lowHalf = buffer[i] & lowMask;
 		highHalf = (buffer[i] & highMask)>>4;
-		printf("high half: %X low half: %X\n",highHalf,lowHalf);
+		//printf("high half: %X low half: %X\n",highHalf,lowHalf);
 		ss << (char)returnASCII(highHalf);
 		ss << (char)returnASCII(lowHalf);
 	}
 	ss >> unpacked;
-	printf("string: %s\n",unpacked.c_str());
+	//printf("string: %s\n",unpacked.c_str());
 	NetworkTable::GetTable("T7")->PutString("T7",unpacked);
 	
 	return unpacked;

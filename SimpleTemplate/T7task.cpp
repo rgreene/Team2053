@@ -23,31 +23,29 @@ T7Task::~T7Task()
 
 void T7Task::Run()
 {
-	while(true)
+	if(initializing && dampCmdSent)
 	{
-	//if(initializing && dampCmdSent)
-	//{
-	//	bool received = inclinometer->ReceiveSetDampingRequest();
-	//	if(received)
-	//	{
-	//		initializing = false;
-	//		dampCmdSent = false;
-	//	}
-	//}
-	//else if(!dampCmdSent && initializing)
-	//{
-	//	inclinometer->SendSetDampingRequest(50);
-	//	dampCmdSent = true;
-	//}
-	//else 
+		bool received = inclinometer->ReceiveSetDampingRequest();
+		if(received)
+	{
+			initializing = false;
+			dampCmdSent = false;
+		}
+	}
+	else if(!dampCmdSent && initializing)
+	{
+		inclinometer->SendSetDampingRequest(50);
+		dampCmdSent = true;
+	}
+	else 
 	if(getAngleRequested)
 	{
 		//work on receiving here
-		printf("checking for angle data back\n");
+		//printf("checking for angle data back\n");
 		angle = inclinometer->ReceiveGetAngleRequest();
 		if(angle > 0.0 || angle < 0.0)
 		{
-			printf("Received angle data\n");
+			//printf("Received angle data\n");
 			NetworkTable::GetTable("T7")->PutNumber("angle",angle);	
 			getAngleRequested = false;					
 		}
@@ -55,11 +53,9 @@ void T7Task::Run()
 	else
 	{
 		//work on sending here
-		printf("Sending request for angle data\n");
+		//printf("Sending request for angle data\n");
 		inclinometer->SendGetAngleRequest();
 		getAngleRequested = true;
-	}
-	Wait(0.05);
 	}
 }
 

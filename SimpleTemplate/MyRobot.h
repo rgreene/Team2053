@@ -9,6 +9,7 @@
 #include <ios>
 #include "math.h"
 #include "xboxController.h"
+#include "T7task.h"
 
 /*
  * Tigertronics 2053, 2013
@@ -66,18 +67,8 @@ class RobotDemo : public SimpleRobot
 
 	bool Shooter_Moving_Up;
 	bool Shooter_Moving_Down;
-	bool Shooter_Up_Button;
-	bool Shooter_Up_Button_Past;
-	bool Shooter_Down_Button;
-	bool Shooter_Down_Button_Past;
-	
-	UINT8 Shooter_Up_Button_Debounce;
-	UINT8 Shooter_Down_Button_Debounce;
 	
 	bool Conveyor_is_On;
-	bool Conveyor_Button;
-	bool Conveyor_Button_Past;
-	UINT8 Conveyor_Button_Debounce;
 	
 
 	UINT8 buttonNum;	// start counting buttons at button 1
@@ -88,6 +79,9 @@ class RobotDemo : public SimpleRobot
 	Joystick *ModeStick;
 	
 	
+	T7Task *angleTask;
+	
+
 	static const int NUM_BUTTONS = 16;
 	bool ModeStick_ButtonState[(NUM_BUTTONS+1)];	
 
@@ -127,6 +121,8 @@ public:
 		
 		xbox = new xboxController(1);
 		ModeStick = new Joystick(2);
+
+		angleTask = new T7Task();
 
 		JagLF = new CANJaguar(2); //left rear 4      5
 		JagRR = new CANJaguar(3); // right front 6   3
@@ -169,26 +165,14 @@ public:
 		getAngleRequested = false;
 		setDamping = true;
 		angle = 0.0;
+		angleTask->Run();
 		
 		Driving_Mode = KEEP_DRIVING;
-		Shooter_Angle_Command = 35.0;
+		Shooter_Angle_Command = 28.0;
 		Shooter_Moving_Up = false;
 		Shooter_Moving_Down = false;
-
-		Shooter_Up_Button        = false;
-		Shooter_Up_Button_Past   = false;
-		Shooter_Down_Button      = false;
-		Shooter_Down_Button_Past = false;
-
-		Shooter_Up_Button_Debounce = 0;
-		Shooter_Down_Button_Debounce = 0;
-
-
-		Conveyor_is_On       = false;
-		Conveyor_Button      = false;
-		Conveyor_Button_Past = false;
-		Conveyor_Button_Debounce = 0;
-
+	
+		Conveyor_is_On = false;
 	}
 
 	void Autonomous(void)
@@ -198,7 +182,6 @@ public:
 		//printf("Robot is now in: Autonomous mode.\n");
 		num = 0;
 		double Shooter_Angle;
-		NetworkTable::GetTable("Autonomous")->PutBoolean("sweetSpot",sweetSpot);
 		Shooter_Angle = NetworkTable::GetTable("T7")->GetNumber("angle");
 		
 		while(IsAutonomous() && IsEnabled() && num < 5) 
@@ -206,24 +189,23 @@ public:
 		{
 
 			Shooter_Angle = NetworkTable::GetTable("T7")->GetNumber("angle");
-			NetworkTable::GetTable("Autonomous")->PutNumber("num_fired",num);
+
 		
-		    if ( (Shooter_Angle > 28.0 && Shooter_Angle < 29.0) || sweetSpot )
+		
+		    if (Shooter_Angle > 28.0 && Shooter_Angle < 29.0  )
 			{
 				WinchJag->Set(0.0);
 				fireFrisbee(*loaderArm,*ShooterBottom,*ShooterTop,*fireTimer);
 				sweetSpot = true;
-				NetworkTable::GetTable("Autonomous")->PutBoolean("sweetSpot",sweetSpot);
 			}
+			
 			else if(Shooter_Angle>28.0 && sweetSpot == false)
 			{
 					WinchJag->Set(-1.0);
-					NetworkTable::GetTable("Autonomous")->PutNumber("Winch",-1.0);
 			}
 			else if(Shooter_Angle<29.0 && sweetSpot == false)
 			{
 					WinchJag->Set(1.0);
-					NetworkTable::GetTable("Autonomous")->PutNumber("Winch",1.0);
 			}
 			
 		}
@@ -240,7 +222,6 @@ public:
 		
 		sweetSpot = false;
 		NetworkTable::GetTable("robotMovement")->PutString("currMode","Teleoperated\0");		
-
 		printf("Robot is now in: Teleoperated mode.\n");
 
 		
@@ -292,11 +273,10 @@ public:
 			      break;
 
 			  case AUTO_AIM :
-				  handleRobotAdjustment();  // get shooter angle from vision stuff
+			      ;  // get shooter angle from vision stuff
 			      break;
 
 			   case EXIT_AUTO_AIM :
-				  NetworkTable::GetTable("robotMovement")->PutBoolean("adjustEnabled",false);
 			      Driving_Mode = KEEP_DRIVING;
 			      break;
 
@@ -310,10 +290,10 @@ public:
 			      break;
 			}
 
+
 			Control_Shooter_Angle();
 			
 			ManualShooterAngle();
-
 			Turn_Conveyor_On_or_Off();
 			
 			controlsChangeCheck();			
@@ -376,89 +356,40 @@ public:
     void Set_Shooter_Angle_Command( double new_angle_command)
     {
         sweetSpot = false;
-    	
-        // ----------------------------------------------
-        // Limit the command to within physical limits
-        // ----------------------------------------------
-
-        if (new_angle_command > 55.0)
-        	Shooter_Angle_Command = 55.0;
-        else if (new_angle_command < 25.0)
-        	Shooter_Angle_Command = 25.0;
-        else
-        	Shooter_Angle_Command = new_angle_command;
+    	Shooter_Angle_Command = new_angle_command;
     }
     
+    
+    void Increase_Shooter_Angle_Command()
+	{
+		sweetSpot = false;
+        Shooter_Angle_Command = Shooter_Angle_Command + 0.5;
+		if ( Shooter_Angle_Command >= 54.0 )
+		   Shooter_Angle_Command = 54.0;
+	
+	}
+   
+	void Decrease_Shooter_Angle_Command()
+	{
+		sweetSpot = false;
+		Shooter_Angle_Command = Shooter_Angle_Command - 0.5;
+		if ( Shooter_Angle_Command <= 25.0 )
+		   Shooter_Angle_Command = 25.0;
+	}
+
 	
 	void ManualShooterAngle()
 	{
-		double Current_Shooter_Angle;
-		
-    	Current_Shooter_Angle = NetworkTable::GetTable("T7")->GetNumber("angle");
-
-    	//------------------------------------------
-		// Debounce shooter down button
-		//------------------------------------------
-		if (ModeStick_ButtonState[2])
-		//if (xbox->GetBtnX())
-	    {
-	    	if (Shooter_Down_Button_Debounce < 20)
-	    		Shooter_Down_Button_Debounce++;
-	    	else
-	    		Shooter_Down_Button = true;
-	    }
-	    else
-	    {
-	    	Shooter_Down_Button_Debounce = 0;
-	    	Shooter_Down_Button = false;
-	    }
-	    
-	    //------------------------------------------
-		// Debounce shooter up button
-		//------------------------------------------
-
-	    if (ModeStick_ButtonState[3])
-		//if (xbox->GetBtnY())
-	    {
-	    	if (Shooter_Up_Button_Debounce < 20)
-	    		Shooter_Up_Button_Debounce++;
-	    	else
-	    		Shooter_Up_Button = true;
-	    }
-	    else
-	    {
-	    	Shooter_Up_Button_Debounce = 0;
-	    	Shooter_Up_Button = false;
-	    }
- 
-	    // On rising edge of shooter down button, command the shooter to the minimum angle
-	    // On falling edge of shooter down button, command the shooter to the current angle
-
-		if(Shooter_Down_Button && !Shooter_Down_Button_Past)
+		if(ModeStick_ButtonState[2])
 		{
-			Set_Shooter_Angle_Command(25.0);
+			//WinchJag->CANJaguar::Set(-1.0);
+			Decrease_Shooter_Angle_Command();
 		}
-		
-		if(!Shooter_Down_Button && Shooter_Down_Button_Past)
+		else if(ModeStick_ButtonState[3])
 		{
-			Set_Shooter_Angle_Command(Current_Shooter_Angle);
-		}
-
-	    // On rising edge of shooter up button, command the shooter to the maximum angle
-	    // On falling edge of shooter down button, command the shooter to the current angle
-		if(Shooter_Up_Button && !Shooter_Up_Button_Past)
-		{
-			Set_Shooter_Angle_Command(56.0);
+			//WinchJag->CANJaguar::Set(1.0);
+			Increase_Shooter_Angle_Command();
 		}		
-
-		if(!Shooter_Up_Button && Shooter_Up_Button_Past)
-		{
-			Set_Shooter_Angle_Command(Current_Shooter_Angle);
-		}		
-		
-		Shooter_Down_Button_Past = Shooter_Down_Button;
-		Shooter_Up_Button_Past = Shooter_Up_Button;
-		
 	}
 	
 
@@ -496,29 +427,7 @@ public:
 
 	void Turn_Conveyor_On_or_Off()
 	{
-	  
-	    //------------------------------------------
-		// Debounce conveyor on/off button
-		//------------------------------------------
-		if (xbox->GetLeftTrigger())
-	    {
-	    	if (Conveyor_Button_Debounce < 50)
-	    		Conveyor_Button_Debounce++;
-	    	else
-	    		Conveyor_Button = true;
-	    }
-	    else
-	    {
-	    	if (Conveyor_Button_Debounce > 0)
-	    		Conveyor_Button_Debounce--;
-	    	else
-	    		Conveyor_Button = false;
-	    }
-		
-	  //------------------------------------------------------
-	  // Toggle the conveyor on/off when the button is pressed
-	  //-------------------------------------------------------
-	  if( Conveyor_Button && !Conveyor_Button_Past )
+	  if( xbox->GetLeftTrigger() )
 	  {
 	     if ( Conveyor_is_On) 
 		 {
@@ -532,10 +441,7 @@ public:
 			Conveyor_is_On = true;
 		 }
 	   }
-	
-	  Conveyor_Button_Past = Conveyor_Button;
 	}			
-	  
 		
 	
 	
@@ -641,7 +547,6 @@ public:
 		}
 		FrisbeeBelt->Set(loaderDriveVal); // negative grabs frisbee
 	}
-
 	
 	void controlsChangeCheck()
 	{	
@@ -685,7 +590,7 @@ public:
 			stick_y[1]=xbox->GetRightAnalogY();
 			stick_x[0] = stick_x[0]*-1;
 			stick_x[1] = stick_x[1]*-1;
-//			stick_y[0] = stick_y[0]*-1;
+			stick_y[0] = stick_y[0]*-1;
 			stick_y[1] = stick_y[1]*-1;
 			//printf("Right Stick is Strafe!\n");						
 		}
@@ -722,8 +627,6 @@ public:
 	// Shooter_Angle == angle.  Frisbee is then fired.
 	void handleRobotAdjustment() 
 	{
-		NetworkTable::GetTable("robotMovement")->PutBoolean("tableRead",true);
-		NetworkTable::GetTable("robotMovement")->PutBoolean("adjustEnabled",true);
 		bool adjust = checkAdjustment();
 		printf("Handling Robot Adjustment!\n");
 		if(NetworkTable::GetTable("robotMovement")->GetBoolean("tableUpdated")) 
@@ -762,7 +665,7 @@ public:
 			   NetworkTable::GetTable("robotMovement")->GetBoolean("right") ||
 			   NetworkTable::GetTable("robotMovement")->GetBoolean("forward") ||
 			   NetworkTable::GetTable("robotMovement")->GetBoolean("back") ||
-			   (NetworkTable::GetTable("robotMovement")->GetNumber("angle") != 0.0));
+			   (NetworkTable::GetTable("robotMovement")->GetNumber("angle") != 45.0));
 	}
 	void strafeLeft() 
 	{
@@ -856,7 +759,6 @@ public:
 	
 	void fireFrisbee(Servo &loaderArm,CANJaguar &ShooterBottom, CANJaguar &ShooterTop,Timer &fireTimer) 
 	{
-		NetworkTable::GetTable("Autonomous")->PutString("fireFrisbee","I am Firing!");
 		ShooterTop.Set(-0.722);
 		ShooterBottom.Set(-0.591);
 		//printf("Timer: %f",fireTimer.Timer::Get());
