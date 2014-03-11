@@ -15,14 +15,26 @@ private:
 public:
 	Pneumatics();
 	//Solenoids
-	Solenoid* BandPullerA;
-	Solenoid* BandPullerB;
-	Solenoid* BandLatchA;
-	Solenoid* BandLatchB;
+	Solenoid* catapultA;
+	Solenoid* catapultB;
+	Solenoid* catapultLatchA;
+	Solenoid* catapultLatchB;
 	//Compressors
 	Compressor* RobotCompressor;
+	AnalogChannel* pressureSensor;
+	
+	DigitalInput* hullSensor1;
+	DigitalInput* hullSensor2;
+	
 	void InitDefaultCommand();
 	void StartCompressor();
+	void OpenLatch();
+	void CloseLatch();
+	void ExtendArm();
+	void RetractArm();
+	float GetPressureRaw();
+	float GetPressurePsi();
+	bool GetHullSensor();
 };
 
 #endif

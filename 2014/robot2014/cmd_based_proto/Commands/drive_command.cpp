@@ -29,32 +29,42 @@ void drive_command::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void drive_command::Execute() {
 	
-	if(Robot::oi->getJoystick()->GetRawAxis(1)>.55 &&
-	Robot::oi->getJoystick()->GetRawAxis(1)<-.55)
-	{
-		xAxis = Robot::oi->getJoystick()->GetRawAxis(1);
-	}else
+	if(Robot::oi->getJoystick1()->GetRawAxis(1)< 0.20 &&
+	Robot::oi->getJoystick1()->GetRawAxis(1)> -0.20)
 	{
 		xAxis = 0;
-	}
-	if(Robot::oi->getJoystick()->GetRawAxis(2)>.55 &&
-	Robot::oi->getJoystick()->GetRawAxis(2)<-.55){
-		yAxis = Robot::oi->getJoystick()->GetRawAxis(2);
 	}else
 	{
+		xAxis = Robot::oi->getJoystick1()->GetRawAxis(1);
+		
+	}
+	if(Robot::oi->getJoystick1()->GetRawAxis(4)< 0.20 &&
+	Robot::oi->getJoystick1()->GetRawAxis(4)> -0.20){
 		yAxis = 0;
-	}
-	if(Robot::oi->getJoystick()->GetRawAxis(4)>.55 &&
-	Robot::oi->getJoystick()->GetRawAxis(4)<-.55){
-		strafeAxis = Robot::oi->getJoystick()->GetRawAxis(4);
 	}else
 	{
+		yAxis = Robot::oi->getJoystick1()->GetRawAxis(4);
+	}
+	if(Robot::oi->getJoystick1()->GetRawAxis(2)< 0.20 &&
+	Robot::oi->getJoystick1()->GetRawAxis(2) > -0.20){
 		strafeAxis = 0;
+	}else
+	{
+		strafeAxis = Robot::oi->getJoystick1()->GetRawAxis(2);
+		
 	}
 	
-	Robot::driveTrain1->MechDrive(Robot::oi->getJoystick()->GetRawAxis(1)
-								,Robot::oi->getJoystick()->GetRawAxis(4)
-								,Robot::oi->getJoystick()->GetRawAxis(2)
+	if(Robot::oi->getJoystick1()->GetRawButton(14))
+	{
+		xAxis = xAxis/2;
+		yAxis = yAxis/2;
+		strafeAxis = strafeAxis/2;
+	}
+	
+	
+	Robot::driveTrain1->MechDrive(yAxis 
+								,-strafeAxis
+								,xAxis
 								);
 }
 // Make this return true when this Command no longer needs to run execute()

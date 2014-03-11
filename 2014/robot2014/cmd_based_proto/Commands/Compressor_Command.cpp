@@ -14,11 +14,12 @@ void Compressor_Command::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void Compressor_Command::Execute() {
 	Robot::pneumatics->StartCompressor();
+	printf("Starting Compressor\n");
 }
 
 // Make this return true when this Command no longer needs to run execute()
 bool Compressor_Command::IsFinished() {
-	return false;
+	return true;
 }
 
 // Called once after isFinished returns true

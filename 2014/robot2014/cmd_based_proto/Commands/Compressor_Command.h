@@ -1,6 +1,7 @@
 #ifndef COMPRESSOR_COMMAND_H
 #define COMPRESSOR_COMMAND_H
 
+#include "Commands/Subsystem.h"
 #include "../Robot.h"
 
 /**
