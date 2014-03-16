@@ -20,7 +20,6 @@ private:
 	bool isDone;
 	Timer* rTimer;
 	float firePressure;
-	float initTime;
 };
 
 #endif

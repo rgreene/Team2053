@@ -5,9 +5,10 @@
 #include "PassCommand.h"
 #include "DriveForwardAuto.h"
 #include "MoveFeederAuto.h"
+#include "WPILib.h"
 
 //Camera constants used for distance calculation
-#define Y_IMAGE_RES 480		//X Image resolution in pixels, should be 120, 240 or 480
+#define Y_IMAGE_RES 240		//X Image resolution in pixels, should be 120, 240 or 480
 #define VIEW_ANGLE 37.4  //Axis M1011 camera
 #define PI 3.141592653
 //Score limits used for target identification
@@ -18,7 +19,7 @@
 #define VERTICAL_SCORE_LIMIT 50
 #define LR_SCORE_LIMIT 50
 //Minimum area of particles to be considered
-#define AREA_MINIMUM 150
+#define AREA_MINIMUM 150/4
 //Maximum number of particles to process
 #define MAX_PARTICLES 8
 
@@ -27,64 +28,67 @@ AutonomousCommandN::AutonomousCommandN() {
 	// eg. requires(chassis);
 	Requires(Robot::pneumatics);
 	AutonomousCommandN::aTimer = 0;
-	printf("auto constuct\n");
+	//printf("auto constuct\n");
 }
 
 // Called just before this Command runs the first time
 void AutonomousCommandN::Initialize() {
-	printf("auto init\n");
+
+	//printf("auto init\n");
 	AutonomousCommandN::isDone = false;
-	printf("\nAfter isDone is set in auto init\n");
+	//printf("\nAfter isDone is set in auto init\n");
 	AutonomousCommandN::takePicture = true;
 	AutonomousCommandN::isHot = false;
 	AutonomousCommandN::state = 0;
-	printf("\nAfter state = 0; is set in auto init\n");
+	//printf("\nAfter state = 0; is set in auto init\n");
 	AutonomousCommandN::aTimer->Reset();
 	AutonomousCommandN::aTimer->Start();
-	printf("I got here and init for auto worked\n");
-}
+	//printf("I got here and init for auto worked\n");
+	Robot::LightRingRelay->Set(Relay::kOn);}
 
 // Called repeatedly when this Command is scheduled to run
 void AutonomousCommandN::Execute() {
-	//printf("Begin Auto Exe\n");
+	////printf("Begin Auto Exe\n");
+	
+	
+	
 	switch(state){
 	case 0:
-	{
-		printf("Case 0:\n");
+	{   
+		//Wait(0.06);
+		////printf("Case 0:\n");
 		//Scheduler::GetInstance()->AddCommand(new DriveForwardcommand(3.0));
-		printf("Begging Autonomous");
+		////printf("Begging Autonomous");
 		Scores *scores;
 		TargetReport target;
 		int verticalTargets[MAX_PARTICLES];
 		int horizontalTargets[MAX_PARTICLES];
 		int verticalTargetCount, horizontalTargetCount;
-	//	Threshold threshold(104, 117, 221, 255, 139, 255);	//HSV threshold criteria, ranges are in that order ie. Hue is 60-100
-		Threshold threshold(90, 140, 17, 243, 17, 243);
+		Threshold threshold(0, 25, 20, 75, 40, 100);	//RGB threshold criteria, ranges are in that order ie. Hue is 60-100
 		ParticleFilterCriteria2 criteria[] = {
 				{IMAQ_MT_AREA, AREA_MINIMUM, 65535, false, false}
 		};												//Particle filter criteria, used to filter out small particles
 		AxisCamera &camera = AxisCamera::GetInstance();	//To use the Axis camera uncomment this line
 
-		HSLImage *image;
-		printf("Now creating new image.");
-		//image = new HSLImage("/testImage.jpg");		// get the sample image from the cRIO flash
+		ColorImage *image;
+		//printf("Now creating new image.");
+		//image = new RGBImage("/testImage.jpg");		// get the sample image from the cRIO flash
 
 		image = camera.GetImage();	
-		printf("Got Image\n");
-		//image->Write("rawI.jpg");
+		//printf("Got Image\n");
+		//image->Write("rawI.bmp");
 		//To get the images from the camera comment the line above and uncomment this one
-		BinaryImage *thresholdImage = image->ThresholdHSL(threshold);	// get just the green target pixels
-		printf("Threshholded. : %d",thresholdImage->GetWidth());
-		thresholdImage->Write("threshold.jpg");
+		BinaryImage *thresholdImage = image->ThresholdRGB(threshold);	// get just the green target pixels
+		//thresholdImage->Write("/threshold.bmp");
 		BinaryImage *filteredImage = thresholdImage->ParticleFilter(criteria, 1);	//Remove small particles
-		//filteredImage->Write("Filtered.jpg");
-		printf("Create images");
+		//filteredImage->Write("Filtered.bmp");
+		//printf("Create images");
 
 		vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
 
 		verticalTargetCount = horizontalTargetCount = 0;
 		//Iterate through each particle, scoring it and determining whether it is a target or not
-		printf("size: %d",reports->size());
+		//printf("size: %d",reports->size());
 		if(reports->size() > 0)
 		{
 			scores = new Scores[reports->size()];
@@ -99,16 +103,16 @@ void AutonomousCommandN::Execute() {
 				//Check if the particle is a horizontal target, if not, check if it's a vertical target
 				if(scoreCompare(scores[i], false))
 				{
-					printf("particle: %d  is a Horizontal Target centerX: %d  centerY: %d \n", i, report->center_mass_x, report->center_mass_y);
+					//printf("particle: %d  is a Horizontal Target centerX: %d  centerY: %d \n", i, report->center_mass_x, report->center_mass_y);
 					horizontalTargets[horizontalTargetCount++] = i; //Add particle to target array and increment count
 				} else if (scoreCompare(scores[i], true)) {
-					printf("particle: %d  is a Vertical Target centerX: %d  centerY: %d \n", i, report->center_mass_x, report->center_mass_y);
+					//printf("particle: %d  is a Vertical Target centerX: %d  centerY: %d \n", i, report->center_mass_x, report->center_mass_y);
 					verticalTargets[verticalTargetCount++] = i;  //Add particle to target array and increment count
 				} else {
-					printf("particle: %d  is not a Target centerX: %d  centerY: %d \n", i, report->center_mass_x, report->center_mass_y);
+					//printf("particle: %d  is not a Target centerX: %d  centerY: %d \n", i, report->center_mass_x, report->center_mass_y);
 				}
-				printf("Scores rect: %f  ARvert: %f \n", scores[i].rectangularity, scores[i].aspectRatioVertical);
-				printf("ARhoriz: %f  \n", scores[i].aspectRatioHorizontal);	
+				//printf("Scores rect: %f  ARvert: %f \n", scores[i].rectangularity, scores[i].aspectRatioVertical);
+				//printf("ARhoriz: %f  \n", scores[i].aspectRatioHorizontal);	
 			}
 
 			//Zero out scores and set verticalIndex to first target in case there are no horizontal targets
@@ -161,10 +165,20 @@ void AutonomousCommandN::Execute() {
 				//horizontal or vertical index to get the particle report as shown below
 			
 					if(target.Hot)
+					{
 						isHot = true;
+						printf("hotness\n");
+					}
 					else
+					{
 						isHot = false;
+						printf("coldness\n");
+					}
 			}
+		else
+		{
+			printf("nothing\n");
+		}
 		}
 				// be sure to delete images after using them
 		delete filteredImage;
@@ -174,42 +188,50 @@ void AutonomousCommandN::Execute() {
 		delete scores;
 		delete reports;
 	}
-	    printf("\nI should be setting the state var to 1\n");
+	    //printf("\nI should be setting the state var to 1\n");
+		//state = 1;
 		state = 1;
-		printf("\n state = %d\n",state);
-		printf("Is hot or not isHot = %d\n",isHot);
+		//printf("\n state = %d\n",state);
+		//printf("Is hot or not isHot = %d\n",isHot);
 		Scheduler::GetInstance()->AddCommand(new MoveFeederAuto());
-		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(1.5,0.7));
+		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(2.9,0.5));
 
 	break;
 	case 1:
-	//	printf("Case 1:\n");
+	//	//printf("Case 1:\n");
 		if(!isHot)
 		{
-			if(aTimer->Get()>=5.0)
+			if(aTimer->Get()>=5.5)
 				state = 3;
 		}
-		else
+		else if(isHot && aTimer->Get()>=2.0)
 			state = 3;
 	break;
 	case 2:
-		printf("Case 2:\n");
-		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(2,1));
+		//printf("Case 2:\n");
+		//Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(2,1));
 		state = 4;
 	break;
 	case 3:
-		printf("My state is %d/n", state);
-		Scheduler::GetInstance()->AddCommand(new PassCommand(55.0));
-		state = 2;
+		//printf("My state is %d/n", state);
+		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(0,0));
+	//	Scheduler::GetInstance()->AddCommand(new PassCommand(1.0));
+		state = 5;
 	break;
 	case 4:
 		isDone = true;
 	break;
-//	case 5:
-//		if(aTimer->Get()>=5.0)
-//			Scheduler::GetInstance()->AddCommand(new PassCommand(55.0));
-//		state=2;		
-//	break;
+	case 5:
+		if(isHot&&aTimer->Get()>=3.0){
+			Scheduler::GetInstance()->AddCommand(new PassCommand(55.0));
+			state = 2;
+		}
+		else if(isHot == false)
+		{
+			Scheduler::GetInstance()->AddCommand(new PassCommand(55.0));
+			state=2;
+		}
+	break;
 	}
 	
 }

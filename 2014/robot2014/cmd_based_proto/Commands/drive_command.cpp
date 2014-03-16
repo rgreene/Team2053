@@ -63,7 +63,7 @@ void drive_command::Execute() {
 	
 	
 	Robot::driveTrain1->MechDrive(yAxis 
-								,-strafeAxis
+								,strafeAxis
 								,xAxis
 								);
 }

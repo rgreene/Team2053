@@ -33,7 +33,7 @@ bool DriveForwardcommand::IsFinished() {
 
 // Called once after isFinished returns true
 void DriveForwardcommand::End() {
-	printf("Drive forward command has ended");
+	//printf("Drive forward command has ended");
 	Robot::driveTrain1->MechDrive(0,0,0);
 	RobotMap::driveTrainRobotDrive41->SetSafetyEnabled(true);
 }

@@ -15,29 +15,25 @@ void PassCommand::Initialize() {
 	isDone = false;
 	fired = false;
 	rTimer->Reset();
-	
+	//rTimer->Start();
 }
 
 // Called repeatedly when this Command is scheduled to run
 void PassCommand::Execute() {
-	    rTimer->Start();
-	    Robot::pneumatics->RetractArm();
+	if(Robot::pneumatics->GetPressurePsi()<=firePressure&&!fired){
 		Robot::pneumatics->OpenLatch();
-	
-   
-	if(rTimer->Get()>= 0.2)
+		Robot::pneumatics->RetractArm();
+	}
+	else if(rTimer->Get()>=2.0)
 	{
 		isDone = true;
 		Robot::pneumatics->ExtendArm();
 	}
 	else{
 		fired = true;
-		initTime = rTimer->Get();
 		Robot::pneumatics->CloseLatch();
-		while(rTimer->Get() < initTime + 0.2){
-		  Robot::pneumatics->RetractArm();
-		}
-		
+		Robot::pneumatics->RetractArm();
+		rTimer->Start();
 	}
 	//printf("Timer: %f",rTimer->Get());
 

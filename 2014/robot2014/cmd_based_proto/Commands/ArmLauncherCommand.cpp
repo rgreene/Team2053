@@ -18,9 +18,9 @@ void ArmLauncherCommand::Initialize() {
 void ArmLauncherCommand::Execute() {
 	if(Robot::pneumatics->GetPressurePsi()<55.0&&aTimer->Get()>=2.5)
 		Robot::pneumatics->RetractArm();
-	else if(aTimer->Get()>=1.6)
+	else if(aTimer->Get()>=2.0)
 		Robot::pneumatics->OpenLatch();
-	else if(aTimer->Get()>=0.6)
+	else if(aTimer->Get()>=0.1)
 		Robot::pneumatics->ExtendArm();
 	else
 		Robot::pneumatics->CloseLatch();

@@ -14,7 +14,7 @@ void Compressor_Command::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void Compressor_Command::Execute() {
 	Robot::pneumatics->StartCompressor();
-	printf("Starting Compressor\n");
+	//printf("Starting Compressor\n");
 }
 
 // Make this return true when this Command no longer needs to run execute()

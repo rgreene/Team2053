@@ -16,7 +16,7 @@ void DriveForwardAuto::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void DriveForwardAuto::Execute() {
 	//printf("Drive forward Command running:");
-		Robot::driveTrain1->MechDrive(0,driveSpeed,0);
+		Robot::driveTrain1->MechDrive(0,-driveSpeed,0);
 }
 
 // Make this return true when this Command no longer needs to run execute()

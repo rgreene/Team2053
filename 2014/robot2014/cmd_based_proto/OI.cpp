@@ -41,7 +41,7 @@ OI::OI() {
 	Buttons1[3]->WhenPressed(new MoveFeeder(2));
 	Buttons1[3]->WhenReleased(new MoveFeeder(4));
 	Buttons1[4]->WhenPressed(new PassCommand(1.0));
-	Buttons1[5]->WhenPressed(new PassCommand(55.0));
+	Buttons1[5]->WhenPressed(new PassCommand(60.0));
 	Buttons1[6]->WhenPressed(new LightOnOffCommands());
 	Buttons1[7]->WhenPressed(new FeederMotorCommand(-1));
 	Buttons1[7]->WhenReleased(new FeederMotorCommand(0));
