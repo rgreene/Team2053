@@ -22,9 +22,9 @@ void ALauncher_Command::Execute() {
 		endTimer->Start();
 		
 		if(!direction)
-			Robot::pneumatics->ExtendArm();
-		else
 			Robot::pneumatics->RetractArm();
+		else
+			Robot::pneumatics->ExtendArm();
 }
 
 // Make this return true when this Command no longer needs to run execute()

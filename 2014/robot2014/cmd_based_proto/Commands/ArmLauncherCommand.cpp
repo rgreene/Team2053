@@ -17,13 +17,13 @@ void ArmLauncherCommand::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void ArmLauncherCommand::Execute() {
 	if(Robot::pneumatics->GetPressurePsi()<55.0&&aTimer->Get()>=2.5)
-		Robot::pneumatics->RetractArm();
-	else if(aTimer->Get()>=2.0)
-		Robot::pneumatics->OpenLatch();
-	else if(aTimer->Get()>=0.1)
 		Robot::pneumatics->ExtendArm();
+	else if(aTimer->Get()>=2.0)
+		Robot::pneumatics->CloseGateLatch();
+	else if(aTimer->Get()>=0.1)
+		Robot::pneumatics->RetractArm();
 	else
-		Robot::pneumatics->CloseLatch();
+		Robot::pneumatics->OpenGateLatch();
 }
 
 // Make this return true when this Command no longer needs to run execute()

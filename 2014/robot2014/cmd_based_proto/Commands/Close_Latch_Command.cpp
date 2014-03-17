@@ -21,7 +21,7 @@ void Close_Latch_Command::Execute() {
 	{
 		endTimer->Start();
 	//printf("Closing Latch\n");
-	Robot::pneumatics->CloseLatch();
+	Robot::pneumatics->OpenGateLatch();
 	}
 }
 

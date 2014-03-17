@@ -16,7 +16,6 @@
 #include "Commands/MoveFeeder.h"
 #include "Commands/FeederMotorCommand.h"
 //#include "Commands/FireCatapultGroup.h"
-#include "Commands/ArmCatapultGroup.h"
 #include "Commands/PassCommand.h"
 #include "Commands/LightOnOffCommands.h"
 

@@ -28,10 +28,10 @@ public:
 	
 	void InitDefaultCommand();
 	void StartCompressor();
-	void OpenLatch();
-	void CloseLatch();
-	void ExtendArm();
+	void CloseGateLatch();
+	void OpenGateLatch();
 	void RetractArm();
+	void ExtendArm();
 	float GetPressureRaw();
 	float GetPressurePsi();
 	bool GetHullSensor();

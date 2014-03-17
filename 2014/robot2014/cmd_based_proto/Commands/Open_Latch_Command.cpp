@@ -4,7 +4,6 @@ Open_Latch_Command::Open_Latch_Command() {
 	// Use requires() here to declare subsystem dependencies
 	// eg. requires(chassis);
 	Requires(Robot::pneumatics);
-	endTimer = new Timer();
 }
 
 // Called just before this Command runs the first time
@@ -14,6 +13,7 @@ void Open_Latch_Command::Initialize() {
 //	{
 //		endTimer->Start();
 //	}
+	SetTimeout(1.0);
 }
 
 // Called repeatedly when this Command is scheduled to run
@@ -22,7 +22,7 @@ void Open_Latch_Command::Execute() {
 //	{
 //		endTimer->Start();
 //		printf("Opening Latch\n");
-		Robot::pneumatics->OpenLatch();
+		Robot::pneumatics->CloseGateLatch();
 //	}
 }
 
@@ -36,9 +36,6 @@ bool Open_Latch_Command::IsFinished() {
 
 // Called once after isFinished returns true
 void Open_Latch_Command::End() {
-//
-	endTimer->Stop();
-	endTimer->~Timer();
 }
 
 // Called when another command which requires one or more of the same

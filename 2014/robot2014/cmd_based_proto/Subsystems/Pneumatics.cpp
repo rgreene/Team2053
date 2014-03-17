@@ -33,22 +33,22 @@ void Pneumatics::StartCompressor()
 {
 	RobotCompressor->Start();
 }
-void Pneumatics::CloseLatch()
+void Pneumatics::OpenGateLatch()
 {
 	catapultLatchA->Set(true);
 	catapultLatchB->Set(false);
 }
-void Pneumatics::OpenLatch()
+void Pneumatics::CloseGateLatch()
 {
 	catapultLatchA->Set(false);
 	catapultLatchB->Set(true);
 }
-void Pneumatics::ExtendArm()
+void Pneumatics::RetractArm()
 {
 	catapultA->Set(true);
 	catapultB->Set(false);
 }
-void Pneumatics::RetractArm()
+void Pneumatics::ExtendArm()
 {
 	catapultA->Set(false);
 	catapultB->Set(true);

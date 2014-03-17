@@ -21,18 +21,18 @@ void PassCommand::Initialize() {
 // Called repeatedly when this Command is scheduled to run
 void PassCommand::Execute() {
 	if(Robot::pneumatics->GetPressurePsi()<=firePressure&&!fired){
-		Robot::pneumatics->OpenLatch();
-		Robot::pneumatics->RetractArm();
+		Robot::pneumatics->CloseGateLatch();
+		Robot::pneumatics->ExtendArm();
 	}
 	else if(rTimer->Get()>=2.0)
 	{
 		isDone = true;
-		Robot::pneumatics->ExtendArm();
+		Robot::pneumatics->RetractArm();
 	}
 	else{
 		fired = true;
-		Robot::pneumatics->CloseLatch();
-		Robot::pneumatics->RetractArm();
+		Robot::pneumatics->OpenGateLatch();
+		Robot::pneumatics->ExtendArm();
 		rTimer->Start();
 	}
 	//printf("Timer: %f",rTimer->Get());
