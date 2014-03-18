@@ -2,7 +2,7 @@
 #include "Vision/RGBImage.h"
 #include "Vision/BinaryImage.h"
 #include "Math.h"
-#include "PassCommand.h"
+#include "FireCommand.h"
 #include "DriveForwardAuto.h"
 #include "MoveFeederAuto.h"
 #include "WPILib.h"
@@ -223,12 +223,12 @@ void AutonomousCommandN::Execute() {
 	break;
 	case 5:
 		if(isHot&&aTimer->Get()>=3.0){
-			Scheduler::GetInstance()->AddCommand(new PassCommand(55.0));
+			Scheduler::GetInstance()->AddCommand(new FireCommand(55.0));
 			state = 2;
 		}
 		else if(isHot == false)
 		{
-			Scheduler::GetInstance()->AddCommand(new PassCommand(55.0));
+			Scheduler::GetInstance()->AddCommand(new FireCommand(55.0));
 			state=2;
 		}
 	break;

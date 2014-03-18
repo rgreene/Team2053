@@ -2,7 +2,6 @@
 #include "../Robotmap.h"
 #include "../Commands/Compressor_Command.h"
 #include "../Commands/ArmLauncherCommand.h"
-#include "../Commands/IdleCatapultGroup.h"
 
 
 

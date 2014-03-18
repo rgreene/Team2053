@@ -153,11 +153,7 @@ CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FeederMot
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/IdleCatapultGroup.o : $(PRJ_ROOT_DIR)/Commands/IdleCatapultGroup.cpp $(FORCE_FILE_BUILD)
-	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
-
-
-CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/LightOnOffCommands.o : $(PRJ_ROOT_DIR)/Commands/LightOnOffCommands.cpp $(FORCE_FILE_BUILD)
+CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FireCommand.o : $(PRJ_ROOT_DIR)/Commands/FireCommand.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -170,10 +166,6 @@ CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeede
 
 
 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.o : $(PRJ_ROOT_DIR)/Commands/Open_Latch_Command.cpp $(FORCE_FILE_BUILD)
-	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
-
-
-CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/PassCommand.o : $(PRJ_ROOT_DIR)/Commands/PassCommand.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -214,12 +206,10 @@ OBJECTS_CommandBasedRobotTemplate = CommandBasedRobotTemplate/$(MODE_DIR)/Object
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardAuto.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardcommand.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FeederMotorCommand.o \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/IdleCatapultGroup.o \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/LightOnOffCommands.o \
+	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FireCommand.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeeder.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeederAuto.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.o \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/PassCommand.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/drive_command.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/OI.o \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Robot.o \
@@ -307,11 +297,7 @@ CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Comm
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
-CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/IdleCatapultGroup.o : $(PRJ_ROOT_DIR)/Commands/IdleCatapultGroup.cpp $(FORCE_FILE_BUILD)
-	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
-
-
-CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/LightOnOffCommands.o : $(PRJ_ROOT_DIR)/Commands/LightOnOffCommands.cpp $(FORCE_FILE_BUILD)
+CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FireCommand.o : $(PRJ_ROOT_DIR)/Commands/FireCommand.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -324,10 +310,6 @@ CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Comm
 
 
 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.o : $(PRJ_ROOT_DIR)/Commands/Open_Latch_Command.cpp $(FORCE_FILE_BUILD)
-	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
-
-
-CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/PassCommand.o : $(PRJ_ROOT_DIR)/Commands/PassCommand.cpp $(FORCE_FILE_BUILD)
 	$(TRACE_FLAG)if [ ! -d "`dirname "$@"`" ]; then mkdir -p "`dirname "$@"`"; fi;echo "building $@"; $(TOOL_PATH)ccppc $(DEBUGFLAGS_C++-Compiler) $(CC_ARCH_SPEC) -ansi -Wall  -MD -MP -mlongcall $(ADDED_C++FLAGS) $(IDE_INCLUDES) $(ADDED_INCLUDES) -DCPU=$(CPU) -DTOOL_FAMILY=$(TOOL_FAMILY) -DTOOL=$(TOOL) -D_WRS_KERNEL   $(DEFINES) -o "$@" -c "$<"
 
 
@@ -368,12 +350,10 @@ OBJECTS_CommandBassedRobotTemplate_partialImage = CommandBassedRobotTemplate_par
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardAuto.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardcommand.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FeederMotorCommand.o \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/IdleCatapultGroup.o \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/LightOnOffCommands.o \
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FireCommand.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeeder.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeederAuto.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.o \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/PassCommand.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/drive_command.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/OI.o \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Robot.o \
@@ -397,18 +377,17 @@ force :
 DEP_FILES := CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/ALauncher_Command.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/ArmLauncherCommand.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/AutonomousCommand.d \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/AutonomousCommandN.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Close_Latch_Command.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Compressor_Command.d \
 	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardAuto.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardcommand.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FeederMotorCommand.d \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/IdleCatapultGroup.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/LightOnOffCommands.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeeder.d \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeederAuto.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/PassCommand.d \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/drive_command.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/OI.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Robot.d \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/RobotMap.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/FeederArm.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/Pneumatics.d \
-	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/driveTrain.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/ALauncher_Command.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/ArmLauncherCommand.d \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/AutonomousCommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/AutonomousCommandN.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Close_Latch_Command.d \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Compressor_Command.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardAuto.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardcommand.d \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FeederMotorCommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/IdleCatapultGroup.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/LightOnOffCommands.d \
+	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FireCommand.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeeder.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeederAuto.d \
+	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Commands/drive_command.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/OI.d \
+	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Robot.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/RobotMap.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/FeederArm.d \
+	 CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/Pneumatics.d CommandBasedRobotTemplate/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/driveTrain.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/ALauncher_Command.d \
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/ArmLauncherCommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/AutonomousCommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/AutonomousCommandN.d \
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Close_Latch_Command.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Compressor_Command.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardAuto.d \
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/DriveForwardcommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FeederMotorCommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/FireCommand.d \
 	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeeder.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/MoveFeederAuto.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/Open_Latch_Command.d \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/PassCommand.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/drive_command.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/OI.d \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Robot.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/RobotMap.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/FeederArm.d \
-	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/Pneumatics.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/driveTrain.d
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Commands/drive_command.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/OI.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Robot.d \
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/RobotMap.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/FeederArm.d CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/Pneumatics.d \
+	 CommandBassedRobotTemplate_partialImage/$(MODE_DIR)/Objects/cmd_based_proto/Subsystems/driveTrain.d
 -include $(DEP_FILES)
 
 

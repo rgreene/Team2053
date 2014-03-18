@@ -1,5 +1,6 @@
-#ifndef LIGHTONOFFCOMMANDS_H
-#define LIGHTONOFFCOMMANDS_H
+#ifndef PASSCOMMAND_H
+#define PASSCOMMAND_H
+
 #include "../Robot.h"
 
 /**
@@ -7,14 +8,20 @@
  *
  * @author Proggrammer
  */
-class LightOnOffCommands: public Command {
+class FireCommand: public Command {
 public:
-	LightOnOffCommands();
+	FireCommand(float fPr);
 	virtual void Initialize();
 	virtual void Execute();
 	virtual bool IsFinished();
 	virtual void End();
 	virtual void Interrupted();
+private:
+	bool isDone;
+	Timer* rTimer;
+	float firePressure;
+	bool isFirst;
+	bool isFired;
 };
 
 #endif
