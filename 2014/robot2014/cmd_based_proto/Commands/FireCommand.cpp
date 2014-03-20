@@ -1,7 +1,5 @@
 #include "FireCommand.h"
 
-bool fired;
-
 FireCommand::FireCommand(float fPr) {
 	// Use requires() here to declare subsystem dependencies
 	// eg. requires(chassis);
@@ -13,7 +11,7 @@ FireCommand::FireCommand(float fPr) {
 // Called just before this Command runs the first time
 void FireCommand::Initialize() {
 	isDone = false;
-	fired = false;
+	isFired = false;
 	isFirst = true;
 	rTimer->Reset();
 	//rTimer->Start();
@@ -24,10 +22,14 @@ void FireCommand::Execute() {
 	if(isFirst)
 	{
 		isFirst = false;
+		isFired = false;
 		rTimer->Reset();
 		rTimer->Start();
 		isDone = false;
 	}
+	
+	
+	fireTime = rTimer->Get();
 	
 	if(isFired == false)
 	{
@@ -39,21 +41,21 @@ void FireCommand::Execute() {
 	}
 	else
 	{
-		if(rTimer->Get()<0.2)//Wait for arm to extend
+		if(fireTime<0.2)//Wait for arm to extend
 		{
 			Robot::pneumatics->ExtendArm();
 			Robot::pneumatics->OpenGateLatch();
 			isFired = true;
 			isDone = false;
 		}
-		else if(rTimer->Get()<2.0)//Retract the arm
+		else if(fireTime<2.0)//Retract the arm
 		{
 			Robot::pneumatics->RetractArm();
 			Robot::pneumatics->OpenGateLatch();
 			isFired = true;
 			isDone = false;
 		}
-		else if(rTimer->Get()<2.5)//Close the latch
+		else if(fireTime<2.5)//Close the latch
 		{
 			Robot::pneumatics->RetractArm();
 			Robot::pneumatics->CloseGateLatch();
@@ -83,7 +85,7 @@ void FireCommand::End() {
 	//Robot::pneumatics->ExtendArm();
 	rTimer->Stop();
 	rTimer->Reset();
-	fired = false;
+	isFired = false;
 	isDone = false;
 	isFirst = false;
 }
@@ -91,4 +93,5 @@ void FireCommand::End() {
 // Called when another command which requires one or more of the same
 // subsystems is scheduled to run
 void FireCommand::Interrupted() {
+	isDone = true;
 }

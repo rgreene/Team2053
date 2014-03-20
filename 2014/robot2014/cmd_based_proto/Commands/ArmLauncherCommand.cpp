@@ -4,26 +4,29 @@ ArmLauncherCommand::ArmLauncherCommand() {
 	// Use requires() here to declare subsystem dependencies
 	// eg. requires(chassis);
 	Requires(Robot::pneumatics);
-	aTimer = new Timer();
+//	aTimer = new Timer();
 }
 
 // Called just before this Command runs the first time
 void ArmLauncherCommand::Initialize() {
-	aTimer->Reset();
-	aTimer->Start();
+//	aTimer->Reset();
+//	aTimer->Start();
 	isDone = false;
 }
 
 // Called repeatedly when this Command is scheduled to run
 void ArmLauncherCommand::Execute() {
-	if(Robot::pneumatics->GetPressurePsi()<55.0&&aTimer->Get()>=2.5)
-		Robot::pneumatics->ExtendArm();
-	else if(aTimer->Get()>=2.0)
-		Robot::pneumatics->CloseGateLatch();
-	else if(aTimer->Get()>=0.1)
-		Robot::pneumatics->RetractArm();
-	else
-		Robot::pneumatics->OpenGateLatch();
+//	if(Robot::pneumatics->GetPressurePsi()<55.0&&aTimer->Get()>=2.5)
+//		Robot::pneumatics->ExtendArm();
+//	else if(aTimer->Get()>=2.0)
+//		Robot::pneumatics->CloseGateLatch();
+//	else if(aTimer->Get()>=0.1)
+//		Robot::pneumatics->RetractArm();
+//	else
+//		Robot::pneumatics->OpenGateLatch();
+	
+	Robot::pneumatics->CloseGateLatch();
+	Robot::pneumatics->ExtendArm();
 }
 
 // Make this return true when this Command no longer needs to run execute()
@@ -33,13 +36,13 @@ bool ArmLauncherCommand::IsFinished() {
 
 // Called once after isFinished returns true
 void ArmLauncherCommand::End() {
-	aTimer->~Timer();
+//	aTimer->~Timer();
 }
 
 // Called when another command which requires one or more of the same
 // subsystems is scheduled to run
 void ArmLauncherCommand::Interrupted() {
-	aTimer->Stop();
-	aTimer->Reset();
+//	aTimer->Stop();
+//	aTimer->Reset();
 	isDone = true;
 }

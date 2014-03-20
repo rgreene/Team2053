@@ -18,6 +18,7 @@ public:
 	virtual void Interrupted();
 private:
 	bool isDone;
+	float fireTime;
 	Timer* rTimer;
 	float firePressure;
 	bool isFirst;

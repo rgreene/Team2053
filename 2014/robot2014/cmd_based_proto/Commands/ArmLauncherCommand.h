@@ -17,7 +17,7 @@ public:
 	virtual void End();
 	virtual void Interrupted();
 private:
-	Timer* aTimer;
+//	Timer* aTimer;
 	bool isDone;
 };
 
