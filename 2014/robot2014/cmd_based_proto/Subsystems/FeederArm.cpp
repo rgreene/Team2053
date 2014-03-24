@@ -18,11 +18,11 @@ void FeederArm::StopFeederArm(){
 void FeederArm::RaiseFeederArm(){
 	//should be 1
 	feederJag->Set(-0.8);
-	printf("Raising Arm\n");
+	//printf("Raising Arm\n");
 }
 
 void FeederArm::LowerFeederArm(){
-	printf("Lowering Arm\n");
+	//printf("Lowering Arm\n");
 	feederJag->Set(0.25);
 }
 
@@ -47,7 +47,7 @@ bool FeederArm::MinFeederArm(){
 }
 void FeederArm::SetFeeder(float volt)
 {
-	printf("Feeder Arm set to: %f\n",volt);
+	//printf("Feeder Arm set to: %f\n",volt);
 	feederJag->Set(volt);
 }
 

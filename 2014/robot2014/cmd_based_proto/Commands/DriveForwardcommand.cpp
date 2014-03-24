@@ -35,7 +35,7 @@ bool DriveForwardcommand::IsFinished() {
 void DriveForwardcommand::End() {
 	//printf("Drive forward command has ended");
 	Robot::driveTrain1->MechDrive(0,0,0);
-	RobotMap::driveTrainRobotDrive41->SetSafetyEnabled(true);
+	RobotMap::driveTrainRobotDrive41->SetSafetyEnabled(false);
 }
 
 // Called when another command which requires one or more of the same

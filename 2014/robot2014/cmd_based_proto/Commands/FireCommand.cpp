@@ -48,14 +48,14 @@ void FireCommand::Execute() {
 			isFired = true;
 			isDone = false;
 		}
-		else if(fireTime<2.0)//Retract the arm
+		else if(fireTime<2.5)//Retract the arm
 		{
 			Robot::pneumatics->RetractArm();
 			Robot::pneumatics->OpenGateLatch();
 			isFired = true;
 			isDone = false;
 		}
-		else if(fireTime<2.5)//Close the latch
+		else if(fireTime<3.0)//Close the latch
 		{
 			Robot::pneumatics->RetractArm();
 			Robot::pneumatics->CloseGateLatch();

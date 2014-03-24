@@ -6,6 +6,7 @@
 #include "DriveForwardAuto.h"
 #include "MoveFeederAuto.h"
 #include "WPILib.h"
+#include "SmartDashboard/SmartDashboard.h"
 
 //Camera constants used for distance calculation
 #define Y_IMAGE_RES 240		//X Image resolution in pixels, should be 120, 240 or 480
@@ -39,20 +40,25 @@ void AutonomousCommandN::Initialize() {
 	//printf("\nAfter isDone is set in auto init\n");
 	AutonomousCommandN::takePicture = true;
 	AutonomousCommandN::isHot = false;
-	AutonomousCommandN::state = 0;
+	AutonomousCommandN::state = 12;
 	//printf("\nAfter state = 0; is set in auto init\n");
 	AutonomousCommandN::aTimer->Reset();
 	AutonomousCommandN::aTimer->Start();
 	//printf("I got here and init for auto worked\n");
 	Robot::LightRingRelay->Set(Relay::kOn);}
 
+
 // Called repeatedly when this Command is scheduled to run
 void AutonomousCommandN::Execute() {
 	////printf("Begin Auto Exe\n");
-	
+	//SmartDashboard::PutBoolean("isHot",isHot);
 	
 	
 	switch(state){
+	case 12:
+		if(aTimer->Get()>=0.5)
+			state = 0;
+	break;
 	case 0:
 	{   
 		//Wait(0.06);
@@ -76,12 +82,12 @@ void AutonomousCommandN::Execute() {
 
 		image = camera.GetImage();	
 		//printf("Got Image\n");
-		//image->Write("rawI.bmp");
+		image->Write("rawI.bmp");
 		//To get the images from the camera comment the line above and uncomment this one
 		BinaryImage *thresholdImage = image->ThresholdRGB(threshold);	// get just the green target pixels
-		//thresholdImage->Write("/threshold.bmp");
+		thresholdImage->Write("/threshold.bmp");
 		BinaryImage *filteredImage = thresholdImage->ParticleFilter(criteria, 1);	//Remove small particles
-		//filteredImage->Write("Filtered.bmp");
+		filteredImage->Write("Filtered.bmp");
 		//printf("Create images");
 
 		vector<ParticleAnalysisReport> *reports = filteredImage->GetOrderedParticleAnalysisReports();  //get a particle analysis report for each particle
@@ -167,17 +173,17 @@ void AutonomousCommandN::Execute() {
 					if(target.Hot)
 					{
 						isHot = true;
-						printf("hotness\n");
+						//printf("hotness\n");
 					}
 					else
 					{
 						isHot = false;
-						printf("coldness\n");
+						//printf("coldness\n");
 					}
 			}
 		else
 		{
-			printf("nothing\n");
+			//printf("nothing\n");
 		}
 		}
 				// be sure to delete images after using them
@@ -192,11 +198,13 @@ void AutonomousCommandN::Execute() {
 		//state = 1;
 		state = 1;
 		//printf("\n state = %d\n",state);
-		//printf("Is hot or not isHot = %d\n",isHot);
+	//	printf("Is hot or not isHot = %d\n",isHot);
+	//	std::cout << "Is hot = "<<isHot<<endl;
+		//SmartDashboard::PutBoolean("isHot",isHot);
+		
 		Scheduler::GetInstance()->AddCommand(new MoveFeederAuto());
-		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(2.9,0.5));
-
-	break;
+		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(2.5,0.5));
+		break;
 	case 1:
 	//	//printf("Case 1:\n");
 		if(!isHot)
@@ -214,7 +222,7 @@ void AutonomousCommandN::Execute() {
 	break;
 	case 3:
 		//printf("My state is %d/n", state);
-		Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(0,0));
+	//	Scheduler::GetInstance()->AddCommand(new DriveForwardAuto(0,0));
 	//	Scheduler::GetInstance()->AddCommand(new PassCommand(1.0));
 		state = 5;
 	break;

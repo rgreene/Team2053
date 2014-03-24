@@ -64,6 +64,8 @@ void Robot::AutonomousInit() {
 	if (autonomousCommand != NULL)
 		autonomousCommand->Start();
 	
+	RobotMap::driveTrainRobotDrive41->SetSafetyEnabled(false);
+	
 	nTable->PutString("currMode","Auto");
 	rTimer->Reset();
 	rTimer->Start();

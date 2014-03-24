@@ -26,7 +26,7 @@ bool DriveForwardAuto::IsFinished() {
 
 // Called once after isFinished returns true
 void DriveForwardAuto::End() {
-	RobotMap::driveTrainRobotDrive41->SetSafetyEnabled(true);
+	RobotMap::driveTrainRobotDrive41->SetSafetyEnabled(false);
 
 }
 
